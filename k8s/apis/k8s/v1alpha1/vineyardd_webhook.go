@@ -78,7 +78,7 @@ func (r *Vineyardd) ValidateDelete() error {
 func (r *Vineyardd) check() {
 	vineyarddlog.Info("validate image", "name", r.Name)
 	defaultImage := "docker.pkg.github.com/v6d-io/v6d/vineyardd:alpine-latest"
-	defaultVersion := "0.8.2"
+	defaultVersion := "0.9.0"
 	defaultReplicas := 3
 	if r.Spec.Image == "" {
 		vineyarddlog.Info("the image is absent, use the default image", "name", defaultImage)

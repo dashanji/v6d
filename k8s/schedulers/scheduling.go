@@ -41,6 +41,25 @@ import (
 	v1alpha1 "github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
 )
 
+const (
+	// Name is the name of the plugin used in Registry and configurations.
+	Name = "Vineyard"
+	// Timeout is the default timeout for the scheduler plugin.
+	Timeout = 60
+	// VineyardJobName is the pod group name
+	VineyardJobName = "scheduling.k8s.v6d.io/job"
+	// VineyardJobRequired is the object ids that required by this job
+	VineyardJobRequired = "scheduling.k8s.v6d.io/required"
+	// VineyardJobReplica is the replication of pods in this job.
+	VineyardJobReplica = "scheduling.k8s.v6d.io/replica"
+	// ControlPlaneLabel is the label of the control plane
+	ControlPlaneLabel = "node-role.kubernetes.io/control-plane"
+	// VineyardSystemNamespace is the default system namespace
+	VineyardSystemNamespace = "vineyard-system"
+	// VineyarddName is the name of the vineyardd
+	VineyarddName = "scheduling.k8s.v6d.io/vineyardd"
+)
+
 // SchedulerState records the status of current scheduling
 type SchedulerState struct {
 	client.Client
@@ -71,6 +90,7 @@ func (ss *SchedulerState) Compute(ctx context.Context, job string, replica int64
 	num := len(workernodes)
 	if len(requires) == 0 {
 		if workernodes[int(rank)%num] == nodeName {
+			klog.V(5).Infof("nodeName: %v, workernodes: %v, rank: %v", nodeName, workernodes, rank)
 			return 100, nil
 		} else {
 			return 1, nil
@@ -79,6 +99,12 @@ func (ss *SchedulerState) Compute(ctx context.Context, job string, replica int64
 	// if no replica, raise
 	if replica == 0 {
 		return 0, fmt.Errorf("No replica information in the job spec")
+	}
+
+	// if the pod needs to be injected with the assembly container
+	// we must wait for the assembly container to be ready
+	if value, ok := pod.Labels["assembly.v6d.io/enabled"]; ok && strings.ToLower(value) == "true" {
+		return 0, nil
 	}
 
 	// accumulates all local required objects
@@ -99,7 +125,7 @@ func (ss *SchedulerState) Compute(ctx context.Context, job string, replica int64
 		return 0, fmt.Errorf("No local chunks found")
 	}
 
-	if err := ss.createConfigmapForID(ctx, requires, pod.GetNamespace(), localObjects, pod); err != nil {
+	if err := ss.createConfigmapForID(ctx, requires, pod.GetNamespace(), localObjects, globalObjects, pod); err != nil {
 		klog.V(5).Infof("can't create configmap for object ID %v", err)
 	}
 
@@ -195,7 +221,8 @@ func (ss *SchedulerState) getLocalObjectsBySignatures(ctx context.Context, signa
 }
 
 // Create a configmap for the object id and the nodes
-func (ss *SchedulerState) createConfigmapForID(ctx context.Context, jobname []string, namespace string, objects []*v1alpha1.LocalObject, pod *v1.Pod) error {
+func (ss *SchedulerState) createConfigmapForID(ctx context.Context, jobname []string, namespace string,
+	localobjects []*v1alpha1.LocalObject, globalobjects []*v1alpha1.GlobalObject, pod *v1.Pod) error {
 	for i := range jobname {
 		configmap := &v1.ConfigMap{}
 		err := ss.Client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: jobname[i]}, configmap)
@@ -207,9 +234,19 @@ func (ss *SchedulerState) createConfigmapForID(ctx context.Context, jobname []st
 		if apierrors.IsNotFound(err) {
 			data := make(map[string]string)
 			// get all local objects produced by the required job
-			for _, o := range objects {
+			// hostname -> localobject id
+			// TODO: if there are lots of localobjects in the same node
+			for _, o := range localobjects {
 				if (*o).Labels["job"] == jobname[i] {
 					data[(*o).Spec.Hostname] = (*o).Spec.ObjectID
+				}
+			}
+			// get all global objects produced by the required job
+			// jobname -> globalobject id
+			// TODO: if there are lots of globalobjects produced by the same job
+			for _, o := range globalobjects {
+				if (*o).Labels["job"] == jobname[i] {
+					data[jobname[i]] = (*o).Spec.ObjectID
 				}
 			}
 			cm := v1.ConfigMap{
@@ -247,25 +284,6 @@ type VineyardScheduling struct {
 	podRank         map[string]map[string]int64
 }
 
-const (
-	// Name is the name of the plugin used in Registry and configurations.
-	Name = "Vineyard"
-	// Timeout is the default timeout for the scheduler plugin.
-	Timeout = 60
-	// VineyardJobName is the pod group name
-	VineyardJobName = "scheduling.k8s.v6d.io/job"
-	// VineyardJobRequired is the object ids that required by this job
-	VineyardJobRequired = "scheduling.k8s.v6d.io/required"
-	// VineyardJobReplica is the replication of pods in this job.
-	VineyardJobReplica = "scheduling.k8s.v6d.io/replica"
-	// ControlPlaneLabel is the label of the control plane
-	ControlPlaneLabel = "node-role.kubernetes.io/control-plane"
-	// VineyardSystemNamespace is the default system namespace
-	VineyardSystemNamespace = "vineyard-system"
-	// VineyarddName is the name of the vineyardd
-	VineyarddName = "scheduling.k8s.v6d.io/vineyardd"
-)
-
 // New initializes a vineyard scheduler
 // func New(configuration *runtime.Unknown, handle framework.FrameworkHandle) (framework.Plugin, error) {
 func New(client client.Client, config *rest.Config, obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
@@ -299,7 +317,7 @@ func (vs *VineyardScheduling) Less(pod1, pod2 *framework.PodInfo) bool {
 func (vs *VineyardScheduling) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
 	klog.V(5).Infof("scoring for pod %v on node %v", GetNamespacedName(pod), nodeName)
 
-	job, replica, requires, vineyardd, err := vs.GetVineyardLabels(pod)
+	job, replica, requires, vineyardd, err := vs.GetVineyardInfo(pod)
 	if err != nil {
 		return 0, framework.NewStatus(framework.Unschedulable, err.Error())
 	}
@@ -313,6 +331,9 @@ func (vs *VineyardScheduling) Score(ctx context.Context, state *framework.CycleS
 	score, err := schedulerState.Compute(ctx, job, replica, podRank, nodes, requires, nodeName, pod)
 	if err != nil {
 		return 0, framework.NewStatus(framework.Unschedulable, err.Error())
+	}
+	if score == 0 {
+		return score, framework.NewStatus(framework.Unschedulable, "")
 	}
 	klog.Infof("score for pod of job %v on node %v is: %v", job, nodeName, score)
 	return score, framework.NewStatus(framework.Success, "")
@@ -428,13 +449,13 @@ func (vs *VineyardScheduling) GetAllWorkerNodes(vineyardd string) []string {
 	for _, pod := range podList.Items {
 		nodes = append(nodes, pod.Spec.NodeName)
 	}
-
+	sort.Strings(nodes)
 	return nodes
 }
 
 // get all required jobs name that separated by '.'
 func (vs *VineyardScheduling) getRequiredJob(pod *v1.Pod) ([]string, error) {
-	objects, exists := pod.Labels[VineyardJobRequired]
+	objects, exists := pod.Annotations[VineyardJobRequired]
 	if !exists {
 		return []string{}, fmt.Errorf("Failed to get the required jobs, please set none if there is no required job")
 	}
@@ -446,8 +467,8 @@ func (vs *VineyardScheduling) getRequiredJob(pod *v1.Pod) ([]string, error) {
 	return strings.Split(objects, "."), nil
 }
 
-// GetVineyardLabels requires (job, replica, requires, vineyardd) information of a pod.
-func (vs *VineyardScheduling) GetVineyardLabels(pod *v1.Pod) (string, int64, []string, string, error) {
+// GetVineyardInfo requires (job, replica, requires, vineyardd) information of a pod.
+func (vs *VineyardScheduling) GetVineyardInfo(pod *v1.Pod) (string, int64, []string, string, error) {
 	job, err := vs.getJobName(pod)
 	if err != nil {
 		return "", 0, nil, "", err
