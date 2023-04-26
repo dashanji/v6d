@@ -154,7 +154,7 @@ jobs:
         run: |
           make -C k8s/test/e2e build-local-cluster
           mkdir -p logs
-          bash dump-logs.sh
+          bash dump-logs.sh -o ./logs
    
       - name: Upload CI artifacts
         uses: actions/upload-artifact@v3
