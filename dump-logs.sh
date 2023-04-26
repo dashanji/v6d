@@ -100,11 +100,6 @@ if [ "$#" -ne 0 ]; then
           exit 0
           ;;
     -n|--namespace)
-          if [ -z "$2" ]; then
-            select_namespace # Call select_namespace if parameter --namespace is empty
-          else
-            NAMESPACE="$2"
-          fi
           ;;
     -o|--output-dir)
           if [ -z "$2" ]; then

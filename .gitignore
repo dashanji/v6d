@@ -12,7 +12,6 @@ compile_commands.json
 cmake-build-debug
 
 # for python packaging
-/dist/
 *.egg-info/
 *.eggs/
 *.so

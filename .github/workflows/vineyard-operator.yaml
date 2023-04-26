@@ -149,20 +149,17 @@ jobs:
       #    make -C k8s/test/e2e build-base-images
 
       # k8s cluster and kubectl initialization 
+      - name: install nodejs
+        if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
 
       - name: e2e-tests-assembly-local
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
-          make -C k8s/test/e2e build-local-cluster
           mkdir -p logs
-          bash dump-logs.sh -o ./logs
-          tar -czvf logs.tar.gz logs
-      - name: Dump Kubernetes Logs
-        uses: stoat-dev/kubernetes-log-export-action@main
-        with:
-          namespaces: default,kube-system
-          show_timestamps: 'true'
-          output_dir: kube-logs-output
+          node dist/index.js
 
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
