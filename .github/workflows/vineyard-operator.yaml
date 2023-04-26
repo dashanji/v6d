@@ -161,7 +161,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pod-logs
-          path: $GITHUB_WORKSPACE/logs.tar.gz
+          path: logs.tar.gz
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
