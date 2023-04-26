@@ -159,6 +159,7 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
           mkdir -p logs
+          make -C k8s/test/e2e build-local-cluster
           node dist/index.js
 
       - name: Run Stoat Action
