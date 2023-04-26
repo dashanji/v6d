@@ -49,7 +49,6 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-20.04
-    if: ${{ github.repository == 'v6d-io/v6d' }}
     strategy:
       fail-fast: false
       matrix:
@@ -149,6 +148,8 @@ jobs:
       #  run: |
       #    make -C k8s/test/e2e build-base-images
 
+      # k8s cluster and kubectl initialization 
+
       - name: e2e-tests-assembly-local
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
@@ -156,12 +157,16 @@ jobs:
           mkdir -p logs
           bash dump-logs.sh -o ./logs
           tar -czvf logs.tar.gz logs
-   
-      - name: Upload CI artifacts
-        uses: actions/upload-artifact@v3
+      - name: Dump Kubernetes Logs
+        uses: stoat-dev/kubernetes-log-export-action@main
         with:
-          name: pod-logs
-          path: logs.tar.gz
+          namespaces: default,kube-system
+          show_timestamps: 'true'
+          output_dir: kube-logs-output
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
