@@ -155,14 +155,13 @@ jobs:
           make -C k8s/test/e2e build-local-cluster
           mkdir -p logs
           bash dump-logs.sh -o ./logs
-          echo $GITHUB_WORKSPACE
-          pwd
+          tar -czvf logs.tar.gz logs
    
       - name: Upload CI artifacts
         uses: actions/upload-artifact@v3
         with:
           name: pod-logs
-          path: $GITHUB_WORKSPACE/logs
+          path: $GITHUB_WORKSPACE/logs.tar.gz
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
