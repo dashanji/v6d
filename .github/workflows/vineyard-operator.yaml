@@ -162,18 +162,6 @@ jobs:
           name: pod-logs
           path: $GITHUB_WORKSPACE/logs
 
-      - name: Dump Kubernetes Logs
-        if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
-        uses: stoat-dev/kubernetes-log-export-action@main
-        with:
-          namespaces: vineyard-system,kube-system
-          show_timestamps: 'true'
-          output_dir: ./kube-logs-output
-
-      - name: Run Stoat Action
-        uses: stoat-dev/stoat-action@v0
-        if: always()
-
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
         run: |
