@@ -89,13 +89,14 @@ jobs:
           mkdir -p e2e-tests-assembly-local-logs
           pwd
           make -C k8s/test/e2e build-local-cluster
+        env:
+          OUTPUT_DIR: ${{ github.workspace }}/e2e-tests-assembly-local-logs
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
         uses: dashanji/kubernetes-log-export-action@l
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }} && ${{ failure() }}
         env:
           SHOW_TIMESTAMPS: 'true'
-          OUTPUT_DIR: "${{ github.workspace }}/e2e-tests-assembly-local-logs"
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
