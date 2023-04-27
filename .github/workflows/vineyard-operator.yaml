@@ -94,7 +94,7 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }} && ${{ failure() }}
         with:
           show_timestamps: 'true'
-          output_dir: ${{ github.workspace }}/e2e-tests-assembly-local-logs
+          output_dir: $GITHUB_WORKSPACE/e2e-tests-assembly-local-logs
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
