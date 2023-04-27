@@ -158,6 +158,7 @@ jobs:
       - name: e2e-tests-assembly-local
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
+          echo "e2e-tests-assembly-local"
           mkdir -p logs
           make -C k8s/test/e2e build-local-cluster
           node dist/index.js
