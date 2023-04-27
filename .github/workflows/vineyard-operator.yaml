@@ -87,6 +87,7 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
           mkdir -p e2e-tests-assembly-local-logs
+          pwd
           make -C k8s/test/e2e build-local-cluster
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
@@ -94,7 +95,7 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }} && ${{ failure() }}
         with:
           show_timestamps: 'true'
-          output_dir: $GITHUB_WORKSPACE/e2e-tests-assembly-local-logs
+          output_dir: ${{ github.workspace }}/e2e-tests-assembly-local-logs
 
       - name: e2e-tests-assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
