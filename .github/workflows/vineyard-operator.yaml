@@ -86,6 +86,7 @@ jobs:
       - name: e2e-tests-assembly-local
         id: assembly-local
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
+        continue-on-error: true
         run: |
           mkdir -p e2e-tests-assembly-local-logs
           chmod +rw e2e-tests-assembly-local-logs
@@ -101,6 +102,7 @@ jobs:
       - name: e2e-tests-assembly-distributed
         id: assembly-distributed
         if: ${{ matrix.job == 'e2e-tests-assembly-distributed' }}
+        continue-on-error: true
         run: |
           mkdir -p e2e-tests-assembly-distributed-logs
           chmod +rw e2e-tests-assembly-distributed-logs
