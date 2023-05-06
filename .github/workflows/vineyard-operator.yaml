@@ -162,6 +162,8 @@ jobs:
           mkdir -p logs
           make -C k8s/test/e2e build-local-cluster
           node dist/index.js
+          #ls -l logs
+          #cat logs/filetree.json
 
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
