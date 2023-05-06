@@ -80,7 +80,7 @@ jobs:
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
         uses: dashanji/kubernetes-log-export-action@n
-        if: ${{ matrix.job == 'e2e-tests-assembly-local' && failure() }}
+        if: ${{ matrix.job == 'e2e-tests-assembly-local'}}
         env:
           SHOW_TIMESTAMPS: 'true'
           OUTPUT_DIR: ${{ github.workspace }}/e2e-tests-assembly-local-logs
