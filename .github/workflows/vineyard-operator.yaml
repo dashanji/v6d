@@ -75,7 +75,6 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
           mkdir -p logs
-          #test
           chmod +rw logs
           make -C k8s/test/e2e build-local-cluster
 
