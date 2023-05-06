@@ -2,7 +2,7 @@ version: 1
 enabled: true
 plugins:
   static_hosting:
-    e2e-tests-assembly-local-logs:
+    logs:
       metadata:
         name: "assembly logs"
       path: logs
