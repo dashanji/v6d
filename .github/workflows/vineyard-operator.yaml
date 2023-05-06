@@ -85,6 +85,11 @@ jobs:
           SHOW_TIMESTAMPS: 'true'
           OUTPUT_DIR: ${{ github.workspace }}/e2e-tests-assembly-local-logs
 
+      - name: yest
+        run: |
+          ls -l e2e-tests-assembly-local-logs
+          cat e2e-tests-assembly-local-logs/filetree.json
+      
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
         if: always()
