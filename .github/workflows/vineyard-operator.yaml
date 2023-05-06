@@ -79,7 +79,7 @@ jobs:
           make -C k8s/test/e2e build-local-cluster
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
-        uses: dashanji/kubernetes-log-export-action@v2
+        uses: dashanji/kubernetes-log-export-action@v1
         if: ${{ matrix.job == 'e2e-tests-assembly-local'}}
         env:
           SHOW_TIMESTAMPS: 'true'
