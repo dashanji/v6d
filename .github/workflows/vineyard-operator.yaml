@@ -74,9 +74,9 @@ jobs:
       - name: e2e-tests-assembly-local
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
-          mkdir -p e2e-tests-assembly-local-logs
+          mkdir -p logs
           #test
-          chmod +rw e2e-tests-assembly-local-logs
+          chmod +rw logs
           make -C k8s/test/e2e build-local-cluster
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
@@ -84,12 +84,12 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local'}}
         env:
           SHOW_TIMESTAMPS: 'true'
-          OUTPUT_DIR: ${{ github.workspace }}/e2e-tests-assembly-local-logs
+          OUTPUT_DIR: ${{ github.workspace }}/logs
 
       - name: yest
         run: |
-          ls -l e2e-tests-assembly-local-logs
-          cat e2e-tests-assembly-local-logs/filetree.json
+          ls -l logs
+          cat logs/filetree.json
       
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
