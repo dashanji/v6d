@@ -41,7 +41,7 @@ setup:
         - namespace: vineyard-job
           resource: deployment/assembly-job2
           for: condition=Available
-  timeout: 50m
+  timeout: 5m
 
 cleanup:
   # always never success failure
