@@ -247,6 +247,5 @@ jobs:
         uses: stoat-dev/stoat-action@v0
         if: |
           always() &&
-          # 检查所有job都已经执行完毕
           github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.id == github.sha &&
           contains(github.event.paths, '.github/workflows/vineyard-operator.yaml')
