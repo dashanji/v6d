@@ -162,6 +162,7 @@ jobs:
           mkdir -p logs
           make -C k8s/test/e2e build-local-cluster
           node dist/index.js
+          #test
           ls -l logs
           cat logs/filetree.json
 
