@@ -91,6 +91,7 @@ jobs:
       - name: yest
         run: |
           ls -R logs
+          #test
           cat logs/filetree.json
       
       - name: Run Stoat Action
