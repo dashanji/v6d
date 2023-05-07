@@ -90,12 +90,9 @@ jobs:
 
       - name: yest
         run: |
-          ls -l logs
+          ls -R logs
           cat logs/filetree.json
       
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
         if: always()
-        env:
-          RUNNER_DEBUG: 1
-          ACTIONS_STEP_DEBUG: true
