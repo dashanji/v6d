@@ -1,3 +1,4 @@
+---
 version: 1
 enabled: true
 plugins:
@@ -5,5 +6,5 @@ plugins:
     logs:
       metadata:
         name: "assembly logs"
-      path: ./logs
+      path: logs
       file_viewer: true
