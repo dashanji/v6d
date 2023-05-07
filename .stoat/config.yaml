@@ -7,4 +7,4 @@ plugins:
       metadata:
         name: "assembly logs"
       path: logs
-      file_viewer: true
+      file_viewer: false

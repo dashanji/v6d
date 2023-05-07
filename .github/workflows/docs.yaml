@@ -194,3 +194,8 @@ jobs:
           git add -A
           git commit -m "Generate latest docs on CI, from commit ${{ github.sha }}."
           git push -f origin gh-pages
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+

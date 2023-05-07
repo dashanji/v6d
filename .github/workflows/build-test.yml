@@ -461,3 +461,8 @@ jobs:
           prerelease: false
           overwrite: true
           body: "vineyard-contrib ${{ steps.tag.outputs.TAG }}"
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+

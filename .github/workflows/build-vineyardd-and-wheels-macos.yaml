@@ -201,6 +201,11 @@ jobs:
           name: vineyardd.${{ runner.os }}-generic.${{ github.sha }}.tar.gz
           path: vineyardd.${{ runner.os }}-generic.${{ github.sha }}.tar.gz
 
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
+
   build-vineyardctl:
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'v6d-io/v6d' }}
@@ -242,6 +247,11 @@ jobs:
         with:
           name: vineyardctl.${{ runner.os }}-generic.${{ github.sha }}.tar.gz
           path: vineyardctl.${{ runner.os }}-generic.${{ github.sha }}.tar.gz
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
 
   build-wheels:
     needs: [build-vineyardd, build-vineyardctl]
@@ -457,3 +467,8 @@ jobs:
         with:
           name: vineyard-macosx-wheels-${{ matrix.python }}
           path: fixed_wheels/*.whl
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+

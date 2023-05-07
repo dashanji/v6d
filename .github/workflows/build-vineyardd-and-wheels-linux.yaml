@@ -101,6 +101,11 @@ jobs:
           name: vineyardd.${{ runner.os }}-${{ matrix.platform }}.${{ github.sha }}.tar.gz
           path: vineyardd.${{ runner.os }}-${{ matrix.platform }}.${{ github.sha }}.tar.gz
 
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
+
   build-vineyardd-manifest:
     needs: [build-vineyardd]
     runs-on: ${{ matrix.os }}
@@ -140,6 +145,11 @@ jobs:
 
           make -C docker/ vineyardd-manifest ALPINE_MANIFEST_TAG=latest
           docker manifest push ghcr.io/v6d-io/v6d/vineyardd:latest
+
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
 
   build-vineyardctl:
     runs-on: ${{ matrix.os }}
@@ -183,6 +193,11 @@ jobs:
         with:
           name: vineyardctl.${{ runner.os }}-${{ matrix.platform }}.${{ github.sha }}.tar.gz
           path: vineyardctl.${{ runner.os }}-${{ matrix.platform }}.${{ github.sha }}.tar.gz
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
 
   build-bdist-wheels:
     needs: [build-vineyardd, build-vineyardctl]
@@ -243,6 +258,11 @@ jobs:
         with:
           name: vineyard-bdist-linux-${{ matrix.platform }}-wheels
           path: fixed_wheels/*.whl
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
 
   build-wheels:
     runs-on: ${{ matrix.os }}
@@ -319,3 +339,8 @@ jobs:
         with:
           name: vineyard-linux-${{ matrix.platform }}-wheels
           path: fixed_wheels/*.whl
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+

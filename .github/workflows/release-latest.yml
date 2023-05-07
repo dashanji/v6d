@@ -82,3 +82,8 @@ jobs:
         with:
           name: vineyard-tarball-${{ github.sha }}
           path: v6d-*.*
+
+      - name: Run Stoat Action
+        uses: stoat-dev/stoat-action@v0
+        if: always()
+
