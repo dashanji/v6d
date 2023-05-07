@@ -4190,11 +4190,12 @@ function run() {
         try {
             const namespaces = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('namespaces');
             const showTimestamps = Boolean(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('show_timestamps'));
-            const outputDir = '/home/runner/work/v6d/v6d/logs'; // ./output-minikube-manusa
+            const outputDir = './logs'; // ./output-minikube-manusa
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('Running kubectl scripts...');
+            // /home/runner/work/v6d/v6d
             for (const namespace of namespaces.split(',').map((n) => n.trim())) {
                 _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Dumping logs for namespace: ${namespace}`);
-                yield _actions_exec__WEBPACK_IMPORTED_MODULE_1__.exec('./dump-logs.sh', ['-n', namespace, '-o', '/home/runner/work/v6d/v6d/logs', '--timestamps', String(showTimestamps)]);
+                yield _actions_exec__WEBPACK_IMPORTED_MODULE_1__.exec('./dump-logs.sh', ['-n', namespace, '-o', './logs', '--timestamps', String(showTimestamps)]);
             }
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('Generating file tree...');
             const fileTree = getFileTree(outputDir);
