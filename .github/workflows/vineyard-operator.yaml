@@ -49,6 +49,8 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-20.04
+    env:
+      RUNNER_DEBUG: true
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +77,7 @@ jobs:
         if: ${{ matrix.job == 'e2e-tests-assembly-local' }}
         run: |
           mkdir -p logs
-          chmod +rw logs
+          chmod 777 logs
           make -C k8s/test/e2e build-local-cluster
 
       - name: export all logs on the kubernetes cluster for assembly local e2e tests
@@ -93,3 +95,6 @@ jobs:
       - name: Run Stoat Action
         uses: stoat-dev/stoat-action@v0
         if: always()
+        env:
+          RUNNER_DEBUG: 1
+          ACTIONS_STEP_DEBUG: true
