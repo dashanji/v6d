@@ -120,7 +120,7 @@ jobs:
 
       - name: test logs
         run: |
-          kubectl run myapp --image=myimage --restart=Never --overrides='{"apiVersion":"v1", "metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'"$(date +%s)"'"}}, "spec":{"containers":[{"name":"myapp", "image":"myimage", "command":["/bin/sh", "-c", "while true; do echo $(date); sleep 1; done"]}]}}' --attach --timeout=5m
+          kubectl run myapp --image=nginx --restart=Never --overrides='{"apiVersion":"v1", "metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'"$(date +%s)"'"}}, "spec":{"containers":[{"name":"myapp", "image":"nginx", "command":["/bin/sh", "-c", "while true; do echo $(date); sleep 1; done"]}]}}' --attach
 
       - name: Export kubernetes logs
         uses: dashanji/kubernetes-log-export-action@v4
