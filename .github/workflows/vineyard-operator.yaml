@@ -108,7 +108,7 @@ jobs:
         run: |
           make -C k8s/test/e2e build-local-cluster
           mkdir -p ${{ github.workspace }}/test-logs
-          chmox 777 ${{ github.workspace }}/test-logs
+          chmod 777 ${{ github.workspace }}/test-logs
 
       - name: Export kubernetes logs
         uses: dashanji/kubernetes-log-export-action@v4
