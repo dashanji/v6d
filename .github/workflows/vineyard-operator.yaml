@@ -114,13 +114,18 @@ jobs:
         uses: dashanji/kubernetes-log-export-action@v4
         env:
           SHOW_TIMESTAMPS: 'true'
-          OUTPUT_DIR: ${{ github.workspace }}/test-logs
+          OUTPUT_DIR: ${{ github.workspace }}
           NAMESPACES: "*"
           MODE: start
 
       - name: test logs
         run: |
-          kubectl run myapp --image=nginx --restart=Never --overrides='{"apiVersion":"v1", "metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"'"$(date +%s)"'"}}, "spec":{"containers":[{"name":"myapp", "image":"nginx", "command":["/bin/sh", "-c", "echo hello"]}]}}' --attach
+          mkdir -p ${{ github.workspace }}/test-logs
+          chmod a+rwx ${{ github.workspace }}/test-logs
+          export OUTPUT_DIR=${{ github.workspace }}/test-logs
+
+          go run k8s/cmd/main.go deploy vineyard-deployment
+          kubectl wait --for=condition=available deployment/vineyardd-sample -n vineyard-system --timeout=300s
 
       - name: Export kubernetes logs
         uses: dashanji/kubernetes-log-export-action@v4
