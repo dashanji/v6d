@@ -49,8 +49,6 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
     steps:
       - uses: actions/checkout@v3
         with:
@@ -112,13 +110,14 @@ jobs:
         run: |
           make -C k8s/test/e2e build-local-cluster
           mkdir -p ${{ github.workspace }}/test-logs
+          chmox 777 ${{ github.workspace }}/test-logs
 
       - name: Export kubernetes logs
         uses: dashanji/kubernetes-log-export-action@v4
         env:
           SHOW_TIMESTAMPS: 'true'
           OUTPUT_DIR: ${{ github.workspace }}/test-logs
-          NAMESPACES: *
+          NAMESPACES: "*"
           MODE: start
 
       - name: test logs
@@ -130,7 +129,7 @@ jobs:
         env:
           SHOW_TIMESTAMPS: 'true'
           OUTPUT_DIR: ${{ github.workspace }}/test-logs
-          NAMESPACES: *
+          NAMESPACES: "*"
           MODE: stop
 
       - name: Upload kubernetes logs
