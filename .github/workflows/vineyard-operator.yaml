@@ -124,7 +124,7 @@ jobs:
           chmod a+rwx ${{ github.workspace }}/test-logs
           export OUTPUT_DIR=${{ github.workspace }}/test-logs
 
-          go run k8s/cmd/main.go deploy vineyard-deployment
+          go run k8s/cmd/main.go deploy vineyard-deployment --create-namespace
           kubectl wait --for=condition=available deployment/vineyardd-sample -n vineyard-system --timeout=300s
 
       - name: Export kubernetes logs
