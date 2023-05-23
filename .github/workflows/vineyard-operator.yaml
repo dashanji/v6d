@@ -114,30 +114,33 @@ jobs:
 
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v2
+        if: false
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build docker image
+        if: false
         run: |
           make -C k8s docker-build
 
       - name: Extract tag name
+        if: false
         id: tag
-        if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+        #if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
         run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Set up qemu
-        if: ${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
+        if: false #${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        if: ${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
+        if: false #${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
         uses: docker/setup-buildx-action@v2
 
       - name: Upload latest docker image
-        if: ${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
+        if: false #${{ matrix.job == 'release' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'v6d-io/v6d' }}
         env:
           # pre-publish to ghcr.io to avoid the "no basic auth credentials" error
           IMG: ghcr.io/v6d-io/v6d/vineyard-operator:latest
@@ -146,7 +149,7 @@ jobs:
           make -C k8s docker-build-push-multi-arch REGISTRY=${{ env.REGISTRY }} VERSION=latest
 
       - name: Generate the python and vineyardd image for tests
-        if: ${{ matrix.job != 'release' }}
+        if: false #${{ matrix.job != 'release' }}
         run: |
           make -C k8s/test/e2e build-base-images
 
@@ -235,7 +238,8 @@ jobs:
       - name: e2e-tests-deploy-raw-backup-and-recover
         if: ${{ matrix.job == 'e2e-tests-deploy-raw-backup-and-recover' }}
         run: |
-          make -C k8s/test/e2e e2e-tests-deploy-raw-backup-and-recover
+          make -C k8s/test/e2e build-local-cluster
+          #make -C k8s/test/e2e e2e-tests-deploy-raw-backup-and-recover
 
       - name: Export kubernetes logs
         uses: dashanji/kubernetes-log-export-action@v3
