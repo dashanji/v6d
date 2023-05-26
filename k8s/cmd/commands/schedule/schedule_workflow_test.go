@@ -13,36 +13,51 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+
+package schedule
 
 import (
+	"reflect"
 	"testing"
 
-	_ "k8s.io/component-base/version/verflag"
+	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Test_main(t *testing.T) {
+func TestNewScheduleWorkflowCmd(t *testing.T) {
 	tests := []struct {
 		name string
+		want *cobra.Command
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			main()
+			if got := NewScheduleWorkflowCmd(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewScheduleWorkflowCmd() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
 
-func Test_tryUsageAndDocs(t *testing.T) {
+func TestSchedulingWorkflow(t *testing.T) {
+	type args struct {
+		c   client.Client
+		obj *unstructured.Unstructured
+	}
 	tests := []struct {
-		name string
+		name    string
+		args    args
+		wantErr bool
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tryUsageAndDocs()
+			if err := SchedulingWorkflow(tt.args.c, tt.args.obj); (err != nil) != tt.wantErr {
+				t.Errorf("SchedulingWorkflow() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

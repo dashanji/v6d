@@ -13,36 +13,50 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package create
 
 import (
+	"reflect"
 	"testing"
 
-	_ "k8s.io/component-base/version/verflag"
+	"github.com/spf13/cobra"
+	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
 )
 
-func Test_main(t *testing.T) {
+func TestNewCreateRecoverCmd(t *testing.T) {
 	tests := []struct {
 		name string
+		want *cobra.Command
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			main()
+			if got := NewCreateRecoverCmd(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewCreateRecoverCmd() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
 
-func Test_tryUsageAndDocs(t *testing.T) {
+func TestBuildV1alphaRecoverCR(t *testing.T) {
 	tests := []struct {
-		name string
+		name    string
+		want    *v1alpha1.Recover
+		wantErr bool
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tryUsageAndDocs()
+			got, err := BuildV1alphaRecoverCR()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("BuildV1alphaRecoverCR() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BuildV1alphaRecoverCR() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

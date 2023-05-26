@@ -13,36 +13,44 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package create
 
 import (
+	"reflect"
 	"testing"
 
-	_ "k8s.io/component-base/version/verflag"
+	"github.com/spf13/cobra"
+	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
 )
 
-func Test_main(t *testing.T) {
+func Test_buildOperation(t *testing.T) {
 	tests := []struct {
 		name string
+		want *v1alpha1.Operation
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			main()
+			if got := buildOperation(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("buildOperation() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
 
-func Test_tryUsageAndDocs(t *testing.T) {
+func TestNewCreateOperationCmd(t *testing.T) {
 	tests := []struct {
 		name string
+		want *cobra.Command
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tryUsageAndDocs()
+			if got := NewCreateOperationCmd(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewCreateOperationCmd() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

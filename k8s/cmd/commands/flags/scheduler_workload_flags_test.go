@@ -13,36 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package flags
 
 import (
 	"testing"
 
-	_ "k8s.io/component-base/version/verflag"
+	"github.com/spf13/cobra"
 )
 
-func Test_main(t *testing.T) {
+func TestApplySchedulerWorkloadOpts(t *testing.T) {
+	type args struct {
+		cmd *cobra.Command
+	}
 	tests := []struct {
 		name string
+		args args
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			main()
-		})
-	}
-}
-
-func Test_tryUsageAndDocs(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tryUsageAndDocs()
+			ApplySchedulerWorkloadOpts(tt.args.cmd)
 		})
 	}
 }

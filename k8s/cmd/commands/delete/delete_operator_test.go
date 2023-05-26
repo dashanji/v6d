@@ -13,36 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package delete
 
 import (
+	"reflect"
 	"testing"
 
-	_ "k8s.io/component-base/version/verflag"
+	"github.com/spf13/cobra"
 )
 
-func Test_main(t *testing.T) {
+func TestNewDeleteOperatorCmd(t *testing.T) {
 	tests := []struct {
 		name string
+		want *cobra.Command
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			main()
-		})
-	}
-}
-
-func Test_tryUsageAndDocs(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tryUsageAndDocs()
+			if got := NewDeleteOperatorCmd(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewDeleteOperatorCmd() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
