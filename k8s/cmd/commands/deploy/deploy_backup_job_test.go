@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
 )
 
 func TestNewDeployBackupJobCmd(t *testing.T) {
@@ -30,6 +31,10 @@ func TestNewDeployBackupJobCmd(t *testing.T) {
 		want *cobra.Command
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: deployBackupJobCmd, // 指定预期的 *cobra.Command 值
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,6 +44,7 @@ func TestNewDeployBackupJobCmd(t *testing.T) {
 		})
 	}
 }
+
 
 func Test_getBackupObjectsFromTemplate(t *testing.T) {
 	type args struct {
