@@ -219,6 +219,7 @@ func BuildVineyardManifestFromFile() (*v1alpha1.Vineyardd, error) {
 	vineyardd := &v1alpha1.Vineyardd{}
 
 	manifest, err := util.ReadFromFile(flags.VineyarddFile)
+	//fmt.Print(manifest)
 	if err != nil {
 		return nil, err
 	}

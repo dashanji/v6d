@@ -21,15 +21,31 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
+
+	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestBuildVineyard(t *testing.T) {
+	opts := &flags.VineyarddOpts
+
 	tests := []struct {
 		name    string
 		want    *v1alpha1.Vineyardd
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: &v1alpha1.Vineyardd{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      flags.VineyarddName,
+					Namespace: flags.GetDefaultVineyardNamespace(),
+				},
+				Spec: *opts,
+			}, // 指定预期的 *cobra.Command 值
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -46,12 +62,24 @@ func TestBuildVineyard(t *testing.T) {
 }
 
 func TestBuildVineyardManifestFromInput(t *testing.T) {
+	opts := &flags.VineyarddOpts
 	tests := []struct {
 		name    string
 		want    *v1alpha1.Vineyardd
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: &v1alpha1.Vineyardd{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      flags.VineyarddName,
+					Namespace: flags.GetDefaultVineyardNamespace(),
+				},
+				Spec: *opts,
+			}, // 指定预期的 *cobra.Command 值
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -67,13 +95,21 @@ func TestBuildVineyardManifestFromInput(t *testing.T) {
 	}
 }
 
+// not implemented
 func TestBuildVineyardManifestFromFile(t *testing.T) {
+	//opts := &flags.VineyarddOpts
+
 	tests := []struct {
 		name    string
 		want    *v1alpha1.Vineyardd
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name:    "Test Case 1",
+			want:    &v1alpha1.Vineyardd{}, // 指定预期的 *cobra.Command 值
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

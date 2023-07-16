@@ -1,0 +1,10 @@
+deploy:
+deploy_recover_job_test.go              Test_createMappingTableConfigmap()
+deploy_vineyardd_test.go                TestBuildVineyardManifestFromFile()
+
+
+
+
+
+
+

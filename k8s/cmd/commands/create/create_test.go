@@ -28,6 +28,10 @@ func TestNewCreateCmd(t *testing.T) {
 		want *cobra.Command
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: createCmd, // 指定预期的 *cobra.Command 值
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

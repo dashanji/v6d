@@ -18,6 +18,7 @@ package deploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -165,12 +166,15 @@ func applyVineyarddFromTemplate(c client.Client) error {
 			return true
 		}
 		if err := util.CreateIfNotExists(c, o, waitETCDPodFunc); err != nil {
+			fmt.Println(o)
+
 			return errors.Wrapf(err, "failed to create object %s", o.GetName())
 		}
 	}
 	// to reduce the time of waiting for the etcd cluster service ready in the vineyardd
 	// wait the etcd cluster for ready here and create the vineyard deployment at last
 	if err := util.CreateIfNotExists(c, deployment); err != nil {
+		fmt.Println(deployment)
 		return errors.Wrapf(err, "failed to create object %s", deployment.GetName())
 	}
 

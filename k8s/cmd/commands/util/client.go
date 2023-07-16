@@ -17,6 +17,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"k8s.io/client-go/kubernetes"
@@ -123,6 +124,7 @@ func CreateWithContext[T client.Object](
 	} else {
 		err := c.Create(ctx, v)
 		if err != nil || len(until) == 0 {
+			fmt.Println(err)
 			return err
 		}
 	}

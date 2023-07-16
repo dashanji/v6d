@@ -21,6 +21,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/deploy"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
@@ -29,6 +32,10 @@ func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
 		want *cobra.Command
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: deleteVineyardDeploymentCmd, // 指定预期的 *cobra.Command 值
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,16 +46,39 @@ func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
 	}
 }
 
+
 func Test_deleteVineyarddFromTemplate(t *testing.T) {
 	type args struct {
 		c client.Client
 	}
+	
+	objects, err := deploy.GetVineyardDeploymentObjectsFromTemplate()
+	if err != nil {
+		t.Fatalf("Failed to get vineyardd resources from template: %v", err)
+	}
+
+	// 将 []*unstructured.Unstructured 转换为 []runtime.Object
+	runtimeObjects := make([]runtime.Object, len(objects))
+	for i, obj := range objects {
+		runtimeObjects[i] = obj
+	}
+
+	client := fake.NewFakeClient(runtimeObjects...) // 将对象添加到假的 Kubernetes 集群中
+	
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			args: args{
+				// 提供测试所需的参数值
+				c:    client,
+			},
+			wantErr: false, // 设置预期的错误结果
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -58,3 +88,4 @@ func Test_deleteVineyarddFromTemplate(t *testing.T) {
 		})
 	}
 }
+

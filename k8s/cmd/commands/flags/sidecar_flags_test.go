@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestApplySidecarOpts(t *testing.T) {
+/*func TestApplySidecarOpts(t *testing.T) {
 	type args struct {
 		cmd *cobra.Command
 	}
@@ -36,4 +36,43 @@ func TestApplySidecarOpts(t *testing.T) {
 			ApplySidecarOpts(tt.args.cmd)
 		})
 	}
+}*/
+
+func TestApplySidecarOpts(t *testing.T) {
+	cmd := &cobra.Command{}
+	ApplySidecarOpts(cmd)
+
+	t.Run("DefaultOptions", func(t *testing.T) {
+		// 执行命令
+		err := cmd.Execute()
+
+		// 检查默认选项
+		if SidecarName != "vineyard-sidecar" {
+			t.Errorf("Default sidecar name is incorrect, got: %s, want: 'vineyard-sidecar'", SidecarName)
+		}
+		if SidecarOpts.Replicas != 1 {
+			t.Errorf("Default etcd replicas is incorrect, got: %d, want: 1", SidecarOpts.Replicas)
+		}
+		if WorkloadYaml != "" {
+			t.Errorf("Default workload yaml is incorrect, got: %s, want: ''", WorkloadYaml)
+		}
+		if WorkloadResource != "" {
+			t.Errorf("Default workload resource is incorrect, got: %s, want: ''", WorkloadResource)
+		}
+		if OwnerReference != "" {
+			t.Errorf("Default owner reference is incorrect, got: %s, want: ''", OwnerReference)
+		}
+		if ApplyResources != false {
+			t.Errorf("Default apply resources is incorrect, got: %v, want: false", ApplyResources)
+		}
+		if OutputFormat != "yaml" {
+			t.Errorf("Default output format is incorrect, got: %s, want: 'yaml'", OutputFormat)
+		}
+
+		// 检查是否有错误发生
+		if err != nil {
+			t.Errorf("Error executing command: %v", err)
+		}
+	})
+
 }

@@ -17,6 +17,7 @@ package deploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -204,6 +205,7 @@ func waitBackupJobReady(c client.Client) error {
 		jobName := flags.BackupName
 		name := client.ObjectKey{Name: jobName, Namespace: flags.Namespace}
 		job := batchv1.Job{}
+		fmt.Println(job)
 		if err := c.Get(context.TODO(), name, &job); err != nil {
 			return false, err
 		}

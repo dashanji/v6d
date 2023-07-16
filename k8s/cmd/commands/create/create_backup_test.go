@@ -19,9 +19,14 @@ import (
 	"reflect"
 	"testing"
 
+	
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
 )
 
 func TestNewCreateBackupCmd(t *testing.T) {
@@ -29,7 +34,14 @@ func TestNewCreateBackupCmd(t *testing.T) {
 		name string
 		want *cobra.Command
 	}{
-		// TODO: Add test cases.
+		{
+			name: "EmptyArgs",
+			want: createBackupCmd,
+		},
+		{
+			name: "WithArgs",
+			want: createBackupCmd,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -41,32 +53,39 @@ func TestNewCreateBackupCmd(t *testing.T) {
 }
 
 func Test_buildBackupCR(t *testing.T) {
-	tests := []struct {
-		name    string
-		want    *v1alpha1.Backup
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	want := &v1alpha1.Backup{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      flags.BackupName,
+			Namespace: flags.Namespace,
+		},
+		Spec: flags.BackupOpts,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := buildBackupCR()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("buildBackupCR() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("buildBackupCR() = %v, want %v", got, tt.want)
-			}
-		})
+
+	got, err := buildBackupCR()
+
+	if err != nil {
+		t.Errorf("buildBackupCR() error = %v, wantErr false", err)
+		return
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("buildBackupCR() = %v, want %v", got, want)
 	}
 }
+
+
+
+
 
 func TestBuildBackup(t *testing.T) {
 	type args struct {
 		c    client.Client
 		args []string
 	}
+	
+	// 创建一个虚拟的 Kubernetes 客户端
+	fakeClient := fake.NewClientBuilder().Build()
+	
 	tests := []struct {
 		name    string
 		args    args
@@ -74,6 +93,24 @@ func TestBuildBackup(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+		        name: "Valid JSON from stdin",
+		        args: args{
+		            c:    fakeClient,
+		            args: []string{},
+		        },
+		        want: &v1alpha1.Backup{
+		            // Expected Backup CR based on the provided JSON.
+		            ObjectMeta: metav1.ObjectMeta{
+				    Name:      flags.BackupName,
+				    Namespace: flags.Namespace,
+			    },
+			    Spec: flags.BackupOpts,
+		        },
+		        wantErr: false,
+		},
+
+		
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,3 +125,5 @@ func TestBuildBackup(t *testing.T) {
 		})
 	}
 }
+
+

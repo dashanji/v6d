@@ -21,6 +21,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
 )
 
 func TestNewCreateRecoverCmd(t *testing.T) {
@@ -29,6 +31,10 @@ func TestNewCreateRecoverCmd(t *testing.T) {
 		want *cobra.Command
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: createRecoverCmd, // 指定预期的 *cobra.Command 值
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -46,6 +52,20 @@ func TestBuildV1alphaRecoverCR(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Test Case 1",
+			want: &v1alpha1.Recover{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      flags.RecoverName,
+					Namespace: flags.GetDefaultVineyardNamespace(),
+				},
+				Spec: v1alpha1.RecoverSpec{
+					BackupName:      flags.BackupName,
+					BackupNamespace: flags.GetDefaultVineyardNamespace(),
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,0 +1,13 @@
+apiVersion: k8s.v6d.io/v1alpha1
+kind: Vineyardd
+metadata:
+  name: vineyardd-sample
+  # don't use default namespace
+  namespace: vineyard-system
+spec:
+  service:
+    type: ClusterIP
+    port: 9600
+  vineyard:
+    image: vineyardcloudnative/vineyardd:alpine-latest
+    imagePullPolicy: IfNotPresent
