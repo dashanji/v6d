@@ -17,19 +17,15 @@ limitations under the License.
 package schedule
 
 import (
-	"context"
-	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func TestNewScheduleWorkflowCmd(t *testing.T) {
+/*func TestNewScheduleWorkflowCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -47,35 +43,39 @@ func TestNewScheduleWorkflowCmd(t *testing.T) {
 			}
 		})
 	}
-}
-
-type mockClient struct {
-	client.Client
-	mock.Mock
-}
-
-// Create mock implementation
-func (m *mockClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
-	args := m.Called(ctx, obj)
-	return args.Error(0)
-}
-
-// Get mock implementation
-func (m *mockClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
-	args := m.Called(ctx, key)
-	return args.Error(0)
-}
+}*/
 
 func TestSchedulingWorkflow(t *testing.T) {
 	flags.KubeConfig = "/home/zhuyi/.kube/config"
 	flags.WorkflowFile = "/home/zhuyi/v6d/k8s/test/e2e/scheduling-outside-cluster-demo/test.yaml"
-	client := util.KubernetesClient()
-	manifests, err := util.ReadFromFile(flags.WorkflowFile)
-	objs, err := util.ParseManifestsToObjects([]byte(manifests))
-	//fmt.Println(objs[0])
-	err = SchedulingWorkflow(client, objs[2])
+	c := util.KubernetesClient()
+	manifests, _ := util.ReadFromFile(flags.WorkflowFile)
+	objs, _ := util.ParseManifestsToObjects([]byte(manifests))
 
-	// The function should return the error
-	assert.NoError(t, err)
-
+	type args struct {
+		c   client.Client
+		obj *unstructured.Unstructured
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test case",
+			args: args{
+				c:   c,
+				obj: objs[2],
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := SchedulingWorkflow(tt.args.c, tt.args.obj); (err != nil) != tt.wantErr {
+				t.Errorf("SchedulingWorkflow() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }

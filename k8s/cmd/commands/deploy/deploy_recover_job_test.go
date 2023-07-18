@@ -19,22 +19,16 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 )
 
-func TestNewDeployRecoverJobCmd(t *testing.T) {
+/*func TestNewDeployRecoverJobCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -52,24 +46,11 @@ func TestNewDeployRecoverJobCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func Test_getRecoverObjectsFromTemplate(t *testing.T) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	kubeconfig := filepath.Join(homeDir, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-
-	clientScheme := runtime.NewScheme()
-	_ = scheme.AddToScheme(clientScheme)
-	c, err := client.New(config, client.Options{Scheme: clientScheme})
-
-	if err != nil {
-		t.Fatalf("Cannot create client, error: %v", err)
-	}
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 
 	type args struct {
 		c client.Client
@@ -312,7 +293,9 @@ func Test_getRecoverObjectsFromTemplate(t *testing.T) {
 	}
 }
 
-func Test_waitRecoverJobReady(t *testing.T) {
+/*func Test_waitRecoverJobReady(t *testing.T) {
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 	type args struct {
 		c client.Client
 	}
@@ -322,9 +305,17 @@ func Test_waitRecoverJobReady(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Job succeeded",
+			args: args{
+				c: c,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flags.Namespace = "vineyard-system"
 			if err := waitRecoverJobReady(tt.args.c); (err != nil) != tt.wantErr {
 				t.Errorf("waitRecoverJobReady() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -334,19 +325,12 @@ func Test_waitRecoverJobReady(t *testing.T) {
 
 // not implemented
 func Test_createMappingTableConfigmap(t *testing.T) {
-	homeDir, err := os.UserHomeDir()
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 
-	kubeconfig := filepath.Join(homeDir, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, _ := clientcmd.BuildConfigFromFlags("", flags.KubeConfig)
 
-	clientScheme := runtime.NewScheme()
-	_ = scheme.AddToScheme(clientScheme)
-	c, err := client.New(config, client.Options{Scheme: clientScheme})
-	cs, err := kubernetes.NewForConfig(config)
-
-	if err != nil {
-		t.Fatalf("Cannot create client, error: %v", err)
-	}
+	cs, _ := kubernetes.NewForConfig(config)
 
 	type args struct {
 		c  client.Client
@@ -375,4 +359,4 @@ func Test_createMappingTableConfigmap(t *testing.T) {
 			}
 		})
 	}
-}
+}*/

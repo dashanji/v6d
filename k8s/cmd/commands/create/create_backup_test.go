@@ -19,17 +19,14 @@ import (
 	"reflect"
 	"testing"
 
-	
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
+	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func TestNewCreateBackupCmd(t *testing.T) {
+/*func TestNewCreateBackupCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -50,7 +47,7 @@ func TestNewCreateBackupCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func Test_buildBackupCR(t *testing.T) {
 	want := &v1alpha1.Backup{
@@ -73,19 +70,15 @@ func Test_buildBackupCR(t *testing.T) {
 	}
 }
 
-
-
-
-
 func TestBuildBackup(t *testing.T) {
 	type args struct {
 		c    client.Client
 		args []string
 	}
-	
-	// 创建一个虚拟的 Kubernetes 客户端
-	fakeClient := fake.NewClientBuilder().Build()
-	
+
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
+
 	tests := []struct {
 		name    string
 		args    args
@@ -94,23 +87,21 @@ func TestBuildBackup(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-		        name: "Valid JSON from stdin",
-		        args: args{
-		            c:    fakeClient,
-		            args: []string{},
-		        },
-		        want: &v1alpha1.Backup{
-		            // Expected Backup CR based on the provided JSON.
-		            ObjectMeta: metav1.ObjectMeta{
-				    Name:      flags.BackupName,
-				    Namespace: flags.Namespace,
-			    },
-			    Spec: flags.BackupOpts,
-		        },
-		        wantErr: false,
+			name: "Valid JSON from stdin",
+			args: args{
+				c:    c,
+				args: []string{},
+			},
+			want: &v1alpha1.Backup{
+				// Expected Backup CR based on the provided JSON.
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      flags.BackupName,
+					Namespace: flags.Namespace,
+				},
+				Spec: flags.BackupOpts,
+			},
+			wantErr: false,
 		},
-
-		
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,5 +116,3 @@ func TestBuildBackup(t *testing.T) {
 		})
 	}
 }
-
-

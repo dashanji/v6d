@@ -1,9 +1,11 @@
 deploy:
-deploy_recover_job_test.go              Test_createMappingTableConfigmap()
-deploy_vineyardd_test.go                TestBuildVineyardManifestFromFile()
+deploy_recover_job_test.go              Test_createMappingTableConfigmap()          error = failed to get object mapping table: 
+                                                                                        failed to get job: jobs.batch "vineyard-recover" not found, wantErr false
+                                        Test_waitRecoverJobReady()                  error = jobs.batch "vineyard-recover" not found, wantErr false
+deploy_operator_test.go                 Test_waitOperatorReady()                    error = deployments.apps "vineyard-controller-manager" not found, wantErr false
 
-
-
+delete:
+delete_vineyard_deployment.go           Test_deleteVineyarddFromTemplate()
 
 
 

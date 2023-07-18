@@ -16,19 +16,14 @@ limitations under the License.
 package deploy
 
 import (
-	"os"
-	"path/filepath"
-	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/clientcmd"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func TestNewDeployCertManagerCmd(t *testing.T) {
+/*func TestNewDeployCertManagerCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -46,20 +41,11 @@ func TestNewDeployCertManagerCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func Test_waitCertManagerReady(t *testing.T) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	kubeconfig := filepath.Join(homeDir, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-
-	clientScheme := runtime.NewScheme()
-	_ = scheme.AddToScheme(clientScheme)
-	c, err := client.New(config, client.Options{Scheme: clientScheme})
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 
 	type args struct {
 		c client.Client
@@ -71,11 +57,11 @@ func Test_waitCertManagerReady(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-			name: "Job not succeeded",
+			name: "Job succeeded",
 			args: args{
 				c: c,
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

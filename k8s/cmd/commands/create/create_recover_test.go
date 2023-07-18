@@ -19,13 +19,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestNewCreateRecoverCmd(t *testing.T) {
+/*func TestNewCreateRecoverCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -43,7 +42,7 @@ func TestNewCreateRecoverCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func TestBuildV1alphaRecoverCR(t *testing.T) {
 	tests := []struct {

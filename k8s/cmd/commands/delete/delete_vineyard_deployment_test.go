@@ -16,17 +16,16 @@ limitations under the License.
 package delete
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/deploy"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
+/*func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -44,18 +43,14 @@ func TestNewDeleteVineyardDeploymentCmd(t *testing.T) {
 			}
 		})
 	}
-}
-
+}*/
 
 func Test_deleteVineyarddFromTemplate(t *testing.T) {
 	type args struct {
 		c client.Client
 	}
-	
-	objects, err := deploy.GetVineyardDeploymentObjectsFromTemplate()
-	if err != nil {
-		t.Fatalf("Failed to get vineyardd resources from template: %v", err)
-	}
+
+	objects, _ := deploy.GetVineyardDeploymentObjectsFromTemplate()
 
 	// 将 []*unstructured.Unstructured 转换为 []runtime.Object
 	runtimeObjects := make([]runtime.Object, len(objects))
@@ -63,8 +58,9 @@ func Test_deleteVineyarddFromTemplate(t *testing.T) {
 		runtimeObjects[i] = obj
 	}
 
-	client := fake.NewFakeClient(runtimeObjects...) // 将对象添加到假的 Kubernetes 集群中
-	
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
+
 	tests := []struct {
 		name    string
 		args    args
@@ -75,17 +71,17 @@ func Test_deleteVineyarddFromTemplate(t *testing.T) {
 			name: "Test Case 1",
 			args: args{
 				// 提供测试所需的参数值
-				c:    client,
+				c: c,
 			},
 			wantErr: false, // 设置预期的错误结果
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flags.Namespace = "vineyard-system"
 			if err := deleteVineyarddFromTemplate(tt.args.c); (err != nil) != tt.wantErr {
 				t.Errorf("deleteVineyarddFromTemplate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
-

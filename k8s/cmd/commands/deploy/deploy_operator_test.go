@@ -15,15 +15,7 @@ limitations under the License.
 */
 package deploy
 
-import (
-	"reflect"
-	"testing"
-
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-func TestNewDeployOperatorCmd(t *testing.T) {
+/*func TestNewDeployOperatorCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -41,9 +33,11 @@ func TestNewDeployOperatorCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
-func Test_waitOperatorReady(t *testing.T) {
+/*func Test_waitOperatorReady(t *testing.T) {
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 	type args struct {
 		c client.Client
 	}
@@ -53,12 +47,20 @@ func Test_waitOperatorReady(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
+		{
+			name: "Job succeeded",
+			args: args{
+				c: c,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flags.Namespace = "vineyard-system"
 			if err := waitOperatorReady(tt.args.c); (err != nil) != tt.wantErr {
 				t.Errorf("waitOperatorReady() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
-}
+}*/

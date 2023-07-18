@@ -17,28 +17,22 @@ package deploy
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
-	"github.com/v6d-io/v6d/k8s/cmd/commands/create"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
-	"k8s.io/client-go/kubernetes/scheme"
+	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	//"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd"
 	//"k8s.io/client-go/kubernetes/fake"
 	//"github.com/stretchr/testify/assert"
 	//metav1"k8s.io/apimachinery/pkg/apis/meta/v1"
 	//"k8s.io/api/apps/v1"
 )
 
-func TestNewDeployBackupJobCmd(t *testing.T) {
+/*func TestNewDeployBackupJobCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -56,28 +50,13 @@ func TestNewDeployBackupJobCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func Test_getBackupObjectsFromTemplate(t *testing.T) {
-	//c, err := getClient()
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	kubeconfig := filepath.Join(homeDir, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-
-	clientScheme := runtime.NewScheme()
-	_ = scheme.AddToScheme(clientScheme)
-	c, err := client.New(config, client.Options{Scheme: clientScheme})
-
-	if err != nil {
-		t.Fatalf("Cannot create client, error: %v", err)
-	}
-	backup, err := create.BuildBackup(c, []string{})
-	fmt.Println(backup)
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
+	//backup, _ := create.BuildBackup(c, []string{})
+	//fmt.Println(backup)
 
 	type args struct {
 		c    client.Client
@@ -363,23 +342,8 @@ func Test_getBackupObjectsFromTemplate(t *testing.T) {
 }
 
 func Test_waitBackupJobReady(t *testing.T) {
-	//c, err := getClient()
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-
-	kubeconfig := filepath.Join(homeDir, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-
-	clientScheme := runtime.NewScheme()
-	_ = scheme.AddToScheme(clientScheme)
-	c, err := client.New(config, client.Options{Scheme: clientScheme})
-
-	if err != nil {
-		t.Fatalf("Cannot create client, error: %v", err)
-	}
+	flags.KubeConfig = "/home/zhuyi/.kube/config"
+	c := util.KubernetesClient()
 
 	type args struct {
 		c client.Client

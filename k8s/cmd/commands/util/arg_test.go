@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestAssertNoArgs(t *testing.T) {
+func Test_AssertNoArgs(t *testing.T) {
 	// 创建一个命令
 	cmd := &cobra.Command{
 		Use: "mycmd",
@@ -40,7 +40,35 @@ func TestAssertNoArgs(t *testing.T) {
 	}
 }
 
-func TestAssertNoArgsOrInput(t *testing.T) {
+func TestAssertNoArgs(t *testing.T) {
+	cmd := &cobra.Command{
+		Use: "mycmd",
+	}
+	type args struct {
+		cmd  *cobra.Command
+		args []string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "NoArgs",
+			args: args{
+				cmd:  cmd,
+				args: []string{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			AssertNoArgs(tt.args.cmd, tt.args.args)
+		})
+	}
+}
+
+func Test_AssertNoArgsOrInput(t *testing.T) {
 	// 创建一个命令
 	cmd := &cobra.Command{
 		Use: "mycmd",
@@ -61,5 +89,23 @@ func TestAssertNoArgsOrInput(t *testing.T) {
 	_, err = cmd.ExecuteC()
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
+	}
+}
+
+func TestAssertNoArgsOrInput(t *testing.T) {
+	type args struct {
+		cmd  *cobra.Command
+		args []string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			AssertNoArgsOrInput(tt.args.cmd, tt.args.args)
+		})
 	}
 }

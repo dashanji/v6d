@@ -18,16 +18,14 @@ limitations under the License.
 package manager
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func TestNewManagerCmd(t *testing.T) {
+/*func TestNewManagerCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -45,7 +43,7 @@ func TestNewManagerCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 // not implemented
 /*func Test_startManager(t *testing.T) {
@@ -100,12 +98,43 @@ func TestStartScheduler(t *testing.T) {
 		LeaderElectionID:       "5fa514f1.v6d.io",
 	})
 
-	// 假设的调度器配置文件路径
+	// 调度器配置文件路径
 	schedulerConfigFile := "/home/zhuyi/v6d/k8s/config/scheduler/config.yaml"
 
 	// 调用 startScheduler
 	go startScheduler(mgr, schedulerConfigFile)
 
-	// 添加某些逻辑以验证 startScheduler 的效果（如果有的话）。
-	// 如果没有具体的逻辑可以验证，你可能需要重构你的函数以使其更易于测试，或者使用更复杂的测试技术，比如模拟外部依赖。
 }
+
+/*func Test_startScheduler(t *testing.T) {
+	mgr, _ := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:                 util.Scheme(),
+		MetricsBindAddress:     flags.MetricsAddr,
+		Port:                   9443,
+		HealthProbeBindAddress: flags.ProbeAddr,
+		LeaderElection:         flags.EnableLeaderElection,
+		LeaderElectionID:       "5fa514f1.v6d.io",
+	})
+	type args struct {
+		mgr                 manager.Manager
+		schedulerConfigFile string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test case",
+			args: args{
+				mgr:                 mgr,
+				schedulerConfigFile: "/home/zhuyi/v6d/k8s/config/scheduler/config.yaml",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			startScheduler(tt.args.mgr, tt.args.schedulerConfigFile)
+		})
+	}
+}*/

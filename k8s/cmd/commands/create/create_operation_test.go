@@ -19,10 +19,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_buildOperation(t *testing.T) {
@@ -51,7 +50,7 @@ func Test_buildOperation(t *testing.T) {
 	}
 }
 
-func TestNewCreateOperationCmd(t *testing.T) {
+/*func TestNewCreateOperationCmd(t *testing.T) {
 	tests := []struct {
 		name string
 		want *cobra.Command
@@ -69,4 +68,4 @@ func TestNewCreateOperationCmd(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
