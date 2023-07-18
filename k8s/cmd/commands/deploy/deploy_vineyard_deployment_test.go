@@ -17,9 +17,11 @@ limitations under the License.
 package deploy
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -29,25 +31,60 @@ import (
 	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 )
 
-/*func TestNewDeployVineyardDeploymentCmd(t *testing.T) {
-	tests := []struct {
-		name string
-		want *cobra.Command
+func TestDeployVineyardDeploymentCmd(t *testing.T) {
+	testReplicas := struct {
+		name             string
+		vineyardReplicas int
+		etcdReplicas     int
 	}{
-		// TODO: Add test cases.
-		{
-			name: "Test Case 1",
-			want: deployVineyardDeploymentCmd, // 指定预期的 *cobra.Command 值
-		},
+		name:             "test replicas",
+		vineyardReplicas: 1,
+		etcdReplicas:     3,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDeployVineyardDeploymentCmd(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDeployVineyardDeploymentCmd() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}*/
+	t.Run(testReplicas.name, func(t *testing.T) {
+		// set the flags
+		flags.KubeConfig = "/tmp/e2e-k8s.config"
+		flags.VineyarddOpts.Replicas = 1
+		flags.VineyarddOpts.EtcdReplicas = 3
+		deployVineyardDeploymentCmd.Run(deployVineyardDeploymentCmd, []string{})
+		// get the replicas of etcd and vineyardd
+		k8sclient := util.KubernetesClient()
+		vineyardPods := corev1.PodList{}
+		vineyarddOpts := []client.ListOption{
+			client.InNamespace(flags.Namespace),
+			client.MatchingLabels{
+				"app.vineyard.io/name": flags.VineyarddName,
+				"app.vineyard.io/role": "vineyardd",
+			},
+		}
+		err := k8sclient.List(context.Background(), &vineyardPods, vineyarddOpts...)
+		if err != nil {
+			t.Errorf("list vineyardd pods error: %v", err)
+		}
+
+		etcdPod := corev1.PodList{}
+		etcdOpts := []client.ListOption{
+			client.InNamespace(flags.Namespace),
+			client.MatchingLabels{
+				"app.vineyard.io/name": flags.VineyarddName,
+				"app.vineyard.io/role": "etcd",
+			},
+		}
+		err = k8sclient.List(context.Background(), &etcdPod, etcdOpts...)
+		if err != nil {
+			t.Errorf("list etcd pods error: %v", err)
+		}
+
+		if len(vineyardPods.Items) != testReplicas.vineyardReplicas {
+			t.Errorf("vineyardd replicas want: %d, got: %d", testReplicas.vineyardReplicas, len(vineyardPods.Items))
+		}
+
+		if len(etcdPod.Items) != testReplicas.etcdReplicas {
+			t.Errorf("etcd replicas want: %d, got: %d", testReplicas.etcdReplicas, len(etcdPod.Items))
+		}
+
+	})
+}
 
 func TestGetVineyardDeploymentObjectsFromTemplate(t *testing.T) {
 	tests := []struct {
