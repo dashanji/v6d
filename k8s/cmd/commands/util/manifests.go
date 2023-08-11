@@ -102,6 +102,7 @@ func DeleteManifests(c client.Client, manifests Manifests, namespace string) err
 // could be more than one and should be separated by comma.
 func ApplyManifestsWithOwnerRef(c client.Client, objs []*unstructured.Unstructured,
 	ownerKind, refKind string) error {
+	// ownerDepKind
 	newobjs := make([]*unstructured.Unstructured, 0)
 	ownerObj := &unstructured.Unstructured{}
 	// reorder the objects to deploy the backup job at first
@@ -125,6 +126,7 @@ func ApplyManifestsWithOwnerRef(c client.Client, objs []*unstructured.Unstructur
 		if _, ok := refKindMap[obj.GetKind()]; ok {
 			obj.SetOwnerReferences([]metav1.OwnerReference{ownerRef})
 		}
+
 		if err := CreateIfNotExists(c, obj); err != nil {
 			return errors.Wrap(err, "failed to create manifest resource")
 		}

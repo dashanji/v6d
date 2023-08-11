@@ -17,6 +17,7 @@ package deploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -142,9 +143,13 @@ var deployBackupJobCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err, "failed to get backup objects from template")
 		}
+		for i := range objs {
+			fmt.Println("objs:", *objs[i])
+		}
 
 		log.Info("applying backup manifests with owner reference")
-		if err := util.ApplyManifestsWithOwnerRef(c, objs, "Job", "Role,Rolebinding"); err != nil {
+		if err := util.ApplyManifestsWithOwnerRef(c, objs, "Job",
+			"Role,Rolebinding"); err != nil {
 			log.Fatal(err, "failed to apply backup objects")
 		}
 
@@ -174,9 +179,13 @@ func getBackupObjectsFromTemplate(c client.Client, args []string) ([]*unstructur
 	// set the vineyardd name and namespace as the vineyard deployment
 	backup.Spec.VineyarddName = flags.VineyardDeploymentName
 	backup.Spec.VineyarddNamespace = flags.VineyardDeploymentNamespace
+	pvcName := flags.PVCName
+	if pvcName == "" {
+		pvcName = flags.BackupName
+	}
 	opts := k8s.NewBackupOpts(
 		flags.BackupName,
-		flags.PVCName,
+		pvcName,
 		flags.BackupOpts.BackupPath,
 	)
 	backupCfg, err := opts.BuildCfgForVineyarctl(c, backup)
