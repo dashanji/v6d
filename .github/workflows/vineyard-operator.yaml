@@ -71,7 +71,6 @@ jobs:
           - e2e-tests-spill
           - e2e-tests-workflow
           - e2e-tests-mars-examples
-          - e2e-tests-vineyardctl
           - e2e-tests-deploy-raw-backup-and-recover
     steps:
       - uses: actions/checkout@v3
@@ -176,7 +175,6 @@ jobs:
                      e2e-tests-spill \
                      e2e-tests-workflow \
                      e2e-tests-mars-examples \
-                     e2e-tests-vineyardctl \
                      e2e-tests-deploy-raw-backup-and-recover; do
             mkdir -p $job-logs
             chmod a+rwx $job-logs
@@ -261,11 +259,6 @@ jobs:
         run: |
           make -C k8s/test/e2e e2e-tests-mars-examples
 
-      - name: e2e-tests-vineyardctl
-        if: ${{ matrix.job == 'e2e-tests-vineyardctl' }}
-        run: |
-          make -C k8s/test/e2e e2e-tests-vineyardctl
-
       - name: e2e-tests-deploy-raw-backup-and-recover
         if: ${{ matrix.job == 'e2e-tests-deploy-raw-backup-and-recover' }}
         run: |
@@ -305,9 +298,6 @@ jobs:
               ;;
             e2e-tests-serialize)
               signed_url_key=ab53
-              ;;
-            e2e-tests-vineyardctl)
-              signed_url_key=cb83
               ;;
             e2e-tests-assembly-local)
               signed_url_key=2cdf

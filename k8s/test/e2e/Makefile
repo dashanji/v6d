@@ -358,17 +358,6 @@ e2e-tests-mars-examples: prepare-e2e-test build-local-cluster load-vineyardd-ima
 	@make delete-local-cluster
 .PHONY: e2e-tests-mars-examples
 
-############# vineyardctl testing ################################################
-
-e2e-tests-vineyardctl: prepare-e2e-test build-local-cluster load-vineyardd-image
-	@make -C ${K8S_DIR} install-cert-manager
-	@make -C ${E2E_DIR} install-vineyard-operator
-	@echo "Running vineyardctl e2e test..."
-	@cd ${ROOT_DIR} && ${GOBIN}/e2e run --config=${E2E_DIR}/vineyardctl/e2e.yaml
-	@echo "vineyardctl e2e test passed."
-	@make delete-local-cluster
-.PHONY: e2e-tests-vineyardctl
-
 ############# backup and recover testing ################################################
 
 e2e-tests-deploy-raw-backup-and-recover: prepare-e2e-test build-local-cluster load-vineyardd-image
