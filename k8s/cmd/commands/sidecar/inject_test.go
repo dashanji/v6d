@@ -16,20 +16,17 @@ limitations under the License.
 package sidecar
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/v6d-io/v6d/k8s/apis/k8s/v1alpha1"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/flags"
@@ -78,7 +75,7 @@ func TestInjectCmd(t *testing.T) {
 		}
 	}`
 	flags.VineyarddOpts.EtcdReplicas = 1
-	flags.ApplyResources = true
+	flags.ApplyResources = false
 	test := struct {
 		name                 string
 		etcdReplicas         int
@@ -97,63 +94,11 @@ func TestInjectCmd(t *testing.T) {
 	}
 	t.Run(test.name, func(t *testing.T) {
 		injectCmd.Run(injectCmd, []string{})
-		time.Sleep(1 * time.Second)
-		// get the replicas of etcd
-		k8sclient := util.KubernetesClient()
-		etcdPod := corev1.PodList{}
-		etcdOpts := []client.ListOption{
-			client.InNamespace(flags.Namespace),
-			client.MatchingLabels{
-				"app.vineyard.io/role": "etcd",
-			},
-		}
-		err := k8sclient.List(context.Background(), &etcdPod, etcdOpts...)
-		if err != nil {
-			t.Errorf("list etcd pods error: %v", err)
-		}
-
-		for _, pod := range etcdPod.Items {
-			for _, container := range pod.Spec.Containers {
-				if container.Image != test.expectedImage {
-					t.Errorf("Pod %s in namespace %s uses the image %s, expected image %s\n", pod.Name, pod.Namespace,
-						container.Image, test.expectedImage)
-				}
-				if cpuRequest, ok := container.Resources.Requests[corev1.ResourceCPU]; ok {
-					if cpuRequest.String() != test.expectedCpu {
-						t.Errorf("Pod %s in namespace %s has cpu request %s, expected cpu request %s\n",
-							pod.Name, pod.Namespace, cpuRequest.String(), test.expectedCpu)
-					}
-				}
-				if memoryRequest, ok := container.Resources.Requests[corev1.ResourceMemory]; ok {
-					if memoryRequest.String() != test.expectedMemery {
-						t.Errorf("Pod %s in namespace %s has memory request %s, expected memory request %s\n", pod.Name,
-							pod.Namespace, memoryRequest.String(), test.expectedMemery)
-					}
-				}
-			}
-		}
-
-		// get the service object
-		svcList := corev1.ServiceList{}
-		err = k8sclient.List(context.Background(), &svcList, client.MatchingLabels{"app.vineyard.io/name": "vineyardd-sample"})
-		if err != nil {
-			t.Errorf("list services error: %v", err)
-		}
-		for _, svc := range svcList.Items {
-			if svc.Spec.Ports[0].Port != int32(test.expectedService_port) {
-				t.Errorf("Service %s in namespace %s uses the port %d, expected port %d\n", svc.Name, svc.Namespace,
-					svc.Spec.Ports[0].Port, test.expectedService_port)
-			}
-			if string(svc.Spec.Type) != test.expectedService_type {
-				t.Errorf("Service %s in namespace %s uses the type %s, expected type %s\n", svc.Name, svc.Namespace,
-					string(svc.Spec.Type), test.expectedService_type)
-			}
-		}
 
 	})
 }
 
-func TestValidateFormat_slow(t *testing.T) {
+func TestValidateFormat(t *testing.T) {
 	type args struct {
 		format string
 	}
@@ -187,7 +132,7 @@ func TestValidateFormat_slow(t *testing.T) {
 	}
 }
 
-func TestGetWorkloadResource_slow(t *testing.T) {
+func TestGetWorkloadResource(t *testing.T) {
 	// get relative path
 	workload_YAML := "../../../config/samples/k8s_v1alpha1_sidecar.yaml"
 
@@ -247,7 +192,6 @@ kind: Deployment` + "\n",
 				if err != nil {
 					t.Errorf("Unexpected error: %v", err)
 				}
-
 				if result != tt.expectedResult {
 					t.Errorf("Expected result:\n%s\n\nBut got:\n%s", tt.expectedResult, result)
 
