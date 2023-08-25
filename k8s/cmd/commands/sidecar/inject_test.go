@@ -255,10 +255,67 @@ spec:
 status: {}
 
 `
+	injectedPod := `apiVersion: v1
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		app.vineyard.io/name: vineyard-sidecar
+		app.vineyard.io/role: vineyardd
+	  name: python
+	  namespace: vineyard-system
+	  ownerReferences: []
+	spec:
+	  containers:
+	  - command:
+		- python
+		- -c
+		- while [ ! -e /var/run/vineyard.sock ]; do sleep 1; done;import time; time.sleep(100000)
+		env:
+		- name: VINEYARD_IPC_SOCKET
+		  value: /var/run/vineyard.sock
+		image: python:3.10
+		name: python
+		resources: {}
+		volumeMounts:
+		- mountPath: /var/run
+		  name: vineyard-socket
+	  - command:
+		- /bin/bash
+		- -c
+		- |
+		  /usr/bin/wait-for-it.sh -t 60 vineyard-sidecar-etcd-service.vineyard-system.svc.cluster.local:2379; sleep 1; /usr/local/bin/vineyardd --sync_crds true --socket /var/run/vineyard.sock --size  --stream_threshold 80 --etcd_cmd etcd --etcd_prefix /vineyard --etcd_endpoint http://vineyard-sidecar-etcd-service:2379
+		env:
+		- name: VINEYARDD_UID
+		  value: null
+		- name: VINEYARDD_NAME
+		  value: vineyard-sidecar
+		- name: VINEYARDD_NAMESPACE
+		  value: vineyard-system
+		image: vineyardcloudnative/vineyardd:latest
+		imagePullPolicy: IfNotPresent
+		name: vineyard-sidecar
+		ports:
+		- containerPort: 9600
+		  name: vineyard-rpc
+		  protocol: TCP
+		resources:
+		  limits: null
+		  requests: null
+		volumeMounts:
+		- mountPath: /var/run
+		  name: vineyard-socket
+	  volumes:
+	  - emptyDir: {}
+		name: vineyard-socket
+	status: {}
+	
+`
 	flags.VineyarddOpts.EtcdReplicas = 1
 	//flags.OutputFormat = "json"
 	flags.ApplyResources = false
-	test := []struct {
+	tests := []struct {
 		name     string
 		resource string
 		wanted   string
@@ -271,16 +328,24 @@ status: {}
 		{
 			name:     "inject kubernetes pod resource",
 			resource: podResource,
-			wanted:   etcdResources,
+			wanted:   etcdResources + injectedPod,
 		},
 	}
-
-	t.Run(test.name, func(t *testing.T) {
-		output := util.CaptureCmdOutput(injectCmd)
-		if !reflect.DeepEqual(output, etcdPodYaml) {
-			t.Errorf("InjectCmd() = %v, want %v", output, etcdPodYaml)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			flags.WorkloadResource = tt.resource
+			output := util.CaptureCmdOutput(injectCmd)
+			if !reflect.DeepEqual(output, tt.wanted) {
+				o, _ := os.Create("output.yaml")
+				w, _ := os.Create("wanted.yaml")
+				defer o.Close()
+				defer w.Close()
+				o.Write([]byte(output))
+				w.Write([]byte(tt.wanted))
+				t.Errorf("%v error: InjectCmd() = %v, want %v", tt.name, output, tt.wanted)
+			}
+		})
+	}
 }
 
 func TestValidateFormat(t *testing.T) {

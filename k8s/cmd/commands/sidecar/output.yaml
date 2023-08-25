@@ -6,7 +6,7 @@ metadata:
     app.vineyard.io/role: etcd
     etcd_node: vineyard-sidecar-etcd-0
   name: vineyard-sidecar-etcd-0
-  namespace: vineyard-system
+  namespace: null
   ownerReferences: []
 spec:
   containers:
@@ -43,7 +43,7 @@ metadata:
   labels:
     etcd_node: vineyard-sidecar-etcd-0
   name: vineyard-sidecar-etcd-0
-  namespace: vineyard-system
+  namespace: null
   ownerReferences: []
 spec:
   ports:
@@ -63,7 +63,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: vineyard-sidecar-etcd-service
-  namespace: vineyard-system
+  namespace: null
   ownerReferences: []
 spec:
   ports:
@@ -81,7 +81,7 @@ metadata:
   labels:
     app.vineyard.io/name: vineyard-sidecar
   name: vineyard-sidecar-rpc
-  namespace: vineyard-system
+  namespace: null
   ownerReferences: []
 spec:
   ports:
@@ -93,66 +93,57 @@ spec:
     app.vineyard.io/role: vineyardd
   type: ClusterIP
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   creationTimestamp: null
-  name: nginx-deployment
-  namespace: vineyard-system
+  labels:
+    app.vineyard.io/name: vineyard-sidecar
+    app.vineyard.io/role: vineyardd
+  name: python
   ownerReferences: []
 spec:
-  selector:
-    matchLabels:
-      app: nginx
-  strategy: {}
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: nginx
-        app.vineyard.io/name: vineyard-sidecar
-        app.vineyard.io/role: vineyardd
-    spec:
-      containers:
-      - command: null
-        env:
-        - name: VINEYARD_IPC_SOCKET
-          value: /var/run/vineyard.sock
-        image: nginx:1.14.2
-        name: nginx
-        ports:
-        - containerPort: 80
-        resources: {}
-        volumeMounts:
-        - mountPath: /var/run
-          name: vineyard-socket
-      - command:
-        - /bin/bash
-        - -c
-        - |
-          /usr/bin/wait-for-it.sh -t 60 vineyard-sidecar-etcd-service.vineyard-system.svc.cluster.local:2379; sleep 1; /usr/local/bin/vineyardd --sync_crds true --socket /var/run/vineyard.sock --size  --stream_threshold 80 --etcd_cmd etcd --etcd_prefix /vineyard --etcd_endpoint http://vineyard-sidecar-etcd-service:2379
-        env:
-        - name: VINEYARDD_UID
-          value: null
-        - name: VINEYARDD_NAME
-          value: vineyard-sidecar
-        - name: VINEYARDD_NAMESPACE
-          value: vineyard-system
-        image: vineyardcloudnative/vineyardd:alpine-latest
-        imagePullPolicy: IfNotPresent
-        name: vineyard-sidecar
-        ports:
-        - containerPort: 9600
-          name: vineyard-rpc
-          protocol: TCP
-        resources:
-          limits: null
-          requests: null
-        volumeMounts:
-        - mountPath: /var/run
-          name: vineyard-socket
-      volumes:
-      - emptyDir: {}
-        name: vineyard-socket
+  containers:
+  - command:
+    - python
+    - -c
+    - while [ ! -e /var/run/vineyard.sock ]; do sleep 1; done;import time; time.sleep(100000)
+    env:
+    - name: VINEYARD_IPC_SOCKET
+      value: /var/run/vineyard.sock
+    image: python:3.10
+    name: python
+    resources: {}
+    volumeMounts:
+    - mountPath: /var/run
+      name: vineyard-socket
+  - command:
+    - /bin/bash
+    - -c
+    - |
+      /usr/bin/wait-for-it.sh -t 60 vineyard-sidecar-etcd-service..svc.cluster.local:2379; sleep 1; /usr/local/bin/vineyardd --sync_crds true --socket /var/run/vineyard.sock --size  --stream_threshold 80 --etcd_cmd etcd --etcd_prefix /vineyard --etcd_endpoint http://vineyard-sidecar-etcd-service:2379
+    env:
+    - name: VINEYARDD_UID
+      value: null
+    - name: VINEYARDD_NAME
+      value: vineyard-sidecar
+    - name: VINEYARDD_NAMESPACE
+      value: null
+    image: vineyardcloudnative/vineyardd:alpine-latest
+    imagePullPolicy: IfNotPresent
+    name: vineyard-sidecar
+    ports:
+    - containerPort: 9600
+      name: vineyard-rpc
+      protocol: TCP
+    resources:
+      limits: null
+      requests: null
+    volumeMounts:
+    - mountPath: /var/run
+      name: vineyard-socket
+  volumes:
+  - emptyDir: {}
+    name: vineyard-socket
 status: {}
 
