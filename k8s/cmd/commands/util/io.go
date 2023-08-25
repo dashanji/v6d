@@ -63,12 +63,14 @@ func ReadJsonFromStdin(args []string) (string, error) {
 	return j, nil
 }
 
-func CaptureCmdOutput(cmd *cobra.Command) []byte {
+func CaptureCmdOutput(cmd *cobra.Command) string {
 	// Create a buffer to capture the output
 	r, w, err := os.Pipe()
 	if err != nil {
 		log.Fatalf(err, "Failed to create pipe")
 	}
+	originalStdout := os.Stdout
+	os.Stdout = w
 
 	cmd.Run(cmd, []string{}) // this gets captured
 
@@ -77,6 +79,7 @@ func CaptureCmdOutput(cmd *cobra.Command) []byte {
 	if err != nil {
 		log.Fatal(err, "Failed to read from buffer")
 	}
+	os.Stdout = originalStdout
 
-	return out
+	return string(out)
 }

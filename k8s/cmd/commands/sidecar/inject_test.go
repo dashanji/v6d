@@ -34,12 +34,109 @@ import (
 	"github.com/v6d-io/v6d/k8s/controllers/k8s"
 )
 
+var etcdResources = `apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app.vineyard.io/name: vineyard-sidecar
+    app.vineyard.io/role: etcd
+    etcd_node: vineyard-sidecar-etcd-0
+  name: vineyard-sidecar-etcd-0
+  namespace: vineyard-system
+  ownerReferences: []
+spec:
+  containers:
+  - command:
+    - etcd
+    - --name
+    - vineyard-sidecar-etcd-0
+    - --initial-advertise-peer-urls
+    - http://vineyard-sidecar-etcd-0:2380
+    - --advertise-client-urls
+    - http://vineyard-sidecar-etcd-0:2379
+    - --listen-peer-urls
+    - http://0.0.0.0:2380
+    - --listen-client-urls
+    - http://0.0.0.0:2379
+    - --initial-cluster
+    - vineyard-sidecar-etcd-0=http://vineyard-sidecar-etcd-0:2380
+    - --initial-cluster-state
+    - new
+    image: vineyardcloudnative/vineyardd:alpine-latest
+    name: etcd
+    ports:
+    - containerPort: 2379
+      name: client
+      protocol: TCP
+    - containerPort: 2380
+      name: server
+      protocol: TCP
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: vineyard-sidecar-etcd-0
+  name: vineyard-sidecar-etcd-0
+  namespace: vineyard-system
+  ownerReferences: []
+spec:
+  ports:
+  - name: client
+    port: 2379
+    protocol: TCP
+    targetPort: 2379
+  - name: server
+    port: 2380
+    protocol: TCP
+    targetPort: 2380
+  selector:
+    app.vineyard.io/role: etcd
+    etcd_node: vineyard-sidecar-etcd-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vineyard-sidecar-etcd-service
+  namespace: vineyard-system
+  ownerReferences: []
+spec:
+  ports:
+  - name: vineyard-sidecar-etcd-for-vineyard-port
+    port: 2379
+    protocol: TCP
+    targetPort: 2379
+  selector:
+    app.vineyard.io/name: vineyard-sidecar
+    app.vineyard.io/role: etcd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.vineyard.io/name: vineyard-sidecar
+  name: vineyard-sidecar-rpc
+  namespace: vineyard-system
+  ownerReferences: []
+spec:
+  ports:
+  - name: vineyard-rpc
+    port: 9600
+    protocol: TCP
+  selector:
+    app.vineyard.io/name: vineyard-sidecar
+    app.vineyard.io/role: vineyardd
+  type: ClusterIP
+---
+`
+
 func TestInjectCmd(t *testing.T) {
 	// set the flags
 	flags.Namespace = "vineyard-system"
 	flags.KubeConfig = os.Getenv("KUBECONFIG")
 	flags.SidecarOpts.Vineyard.Image = "vineyardcloudnative/vineyardd:alpine-latest"
-	flags.WorkloadResource = `{
+	workloadResource := `{
 		"apiVersion": "apps/v1",
 		"kind": "Deployment",
 		"metadata": {
@@ -74,27 +171,115 @@ func TestInjectCmd(t *testing.T) {
 		  }
 		}
 	}`
-	flags.VineyarddOpts.EtcdReplicas = 1
-	flags.ApplyResources = false
-	test := struct {
-		name                 string
-		etcdReplicas         int
-		expectedImage        string
-		expectedCpu          string
-		expectedMemery       string
-		expectedService_port int
-		expectedService_type string
-	}{
-		name:                 "test",
-		expectedImage:        "vineyardcloudnative/vineyardd:alpine-latest",
-		expectedCpu:          "",
-		expectedMemery:       "",
-		expectedService_port: 9600,
-		expectedService_type: "ClusterIP",
-	}
-	t.Run(test.name, func(t *testing.T) {
-		injectCmd.Run(injectCmd, []string{})
+	podResource := `{
+		"apiVersion": "v1",
+		"kind": "Pod",
+		"metadata": {
+		  "name": "python"
+		},
+		"spec": {
+		  "containers": [
+			{
+			  "name": "python",
+			  "image": "python:3.10",
+			  "command": [
+				"python",
+				"-c",
+				"import time; time.sleep(100000)"
+			  ]
+			}
+		  ]
+		}
+	  }`
+	injectedWorkload := `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: nginx-deployment
+  namespace: vineyard-system
+  ownerReferences: []
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.vineyard.io/name: vineyard-sidecar
+        app.vineyard.io/role: vineyardd
+    spec:
+      containers:
+      - command: null
+        env:
+        - name: VINEYARD_IPC_SOCKET
+          value: /var/run/vineyard.sock
+        image: nginx:1.14.2
+        name: nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/run
+          name: vineyard-socket
+      - command:
+        - /bin/bash
+        - -c
+        - |
+          /usr/bin/wait-for-it.sh -t 60 vineyard-sidecar-etcd-service.vineyard-system.svc.cluster.local:2379; sleep 1; /usr/local/bin/vineyardd --sync_crds true --socket /var/run/vineyard.sock --size  --stream_threshold 80 --etcd_cmd etcd --etcd_prefix /vineyard --etcd_endpoint http://vineyard-sidecar-etcd-service:2379
+        env:
+        - name: VINEYARDD_UID
+          value: null
+        - name: VINEYARDD_NAME
+          value: vineyard-sidecar
+        - name: VINEYARDD_NAMESPACE
+          value: vineyard-system
+        image: vineyardcloudnative/vineyardd:alpine-latest
+        imagePullPolicy: IfNotPresent
+        name: vineyard-sidecar
+        ports:
+        - containerPort: 9600
+          name: vineyard-rpc
+          protocol: TCP
+        resources:
+          limits: null
+          requests: null
+        volumeMounts:
+        - mountPath: /var/run
+          name: vineyard-socket
+      volumes:
+      - emptyDir: {}
+        name: vineyard-socket
+status: {}
 
+`
+	flags.VineyarddOpts.EtcdReplicas = 1
+	//flags.OutputFormat = "json"
+	flags.ApplyResources = false
+	test := []struct {
+		name     string
+		resource string
+		wanted   string
+	}{
+		{
+			name:     "inject kubernetes workload resource",
+			resource: workloadResource,
+			wanted:   etcdResources + injectedWorkload,
+		},
+		{
+			name:     "inject kubernetes pod resource",
+			resource: podResource,
+			wanted:   etcdResources,
+		},
+	}
+
+	t.Run(test.name, func(t *testing.T) {
+		output := util.CaptureCmdOutput(injectCmd)
+		if !reflect.DeepEqual(output, etcdPodYaml) {
+			t.Errorf("InjectCmd() = %v, want %v", output, etcdPodYaml)
+		}
 	})
 }
 
