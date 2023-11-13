@@ -232,10 +232,10 @@ def get(
     # run resolver
     obj = client.get_object(object_id, fetch=fetch)
     meta = obj.meta
-    if not meta.islocal and not meta.isglobal:
-        raise ValueError(
-            "Not a local object: for remote object, you can only get its metadata"
-        )
+    #if not meta.islocal and not meta.isglobal:
+    #    raise ValueError(
+    #        "Not a local object: for remote object, you can only get its metadata"
+    #    )
     if resolver is None:
         resolver = get_current_resolvers()
     return resolver(obj, __vineyard_client=client, **kw)

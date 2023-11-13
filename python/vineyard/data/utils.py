@@ -27,6 +27,9 @@ from vineyard._C import Object
 from vineyard._C import ObjectID
 from vineyard._C import ObjectMeta
 
+from vineyard._C import RPCClient
+from vineyard._C import RemoteBlobBuilder
+
 if pickle.HIGHEST_PROTOCOL < 5:
     import pickle5 as pickle  # pylint: disable=import-error
 
@@ -170,6 +173,17 @@ def build_buffer(
 
 
 def build_numpy_buffer(client, array):
+    print("called build_numpy_buffer", flush=True)
+    if isinstance(client, RPCClient):
+        print("called rpc client", flush=True)
+        array_bytes = bytes(array)
+        buffer = RemoteBlobBuilder(len(array_bytes))
+        buffer.copy(0, array_bytes)
+        id = client.create_remote_blob(buffer)
+        meta = client.get_meta(id)
+        #print("meta is: ",meta, flush=True)
+        #new_meta = client.create_metadata(meta)
+        return meta
     if array.dtype.name != 'object':
         if not array.flags['C_CONTIGUOUS']:
             array = np.ascontiguousarray(array)
@@ -177,7 +191,9 @@ def build_numpy_buffer(client, array):
         return build_buffer(client, address, array.nbytes)
     else:
         payload = pickle.dumps(array, protocol=5)
-        return build_buffer(client, payload, len(payload))
+        buffer = client.create_blob(len(payload))
+        buffer.copy(0, payload)
+        return buffer.seal(client)
 
 
 def default_json_encoder(value):
