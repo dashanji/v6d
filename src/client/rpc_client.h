@@ -159,6 +159,30 @@ class RPCClient final : public ClientBase {
    * @brief Get an object from vineyard. The ObjectFactory will be used to
    * resolve the constructor of the object.
    *
+   * @param id The object id to get.
+   *
+   * @return A std::shared_ptr<Object> that can be safely cast to the underlying
+   * concrete object type. When the object doesn't exists an std::runtime_error
+   * exception will be raised.
+   */
+  std::shared_ptr<Object> FetchAndGetObject(const ObjectID id);
+
+  /**
+   * @brief Get an object from vineyard. The ObjectFactory will be used to
+   * resolve the constructor of the object.
+   *
+   * @param id The object id to get.
+   * @param object The result object will be set in parameter `object`.
+   *
+   * @return When errors occur during the request, this method won't throw
+   * exceptions, rather, it results a status to represents the error.
+   */
+  Status FetchAndGetObject(const ObjectID id, std::shared_ptr<Object>& object);
+
+  /**
+   * @brief Get an object from vineyard. The ObjectFactory will be used to
+   * resolve the constructor of the object.
+   *
    * In RPCClient, all blob fields in the result object are unaccessible, access
    * those fields will trigger an `std::runtime_error`.
    *

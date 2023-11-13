@@ -30,6 +30,7 @@ limitations under the License.
 #include "common/compression/compressor.h"
 #include "common/util/env.h"
 #include "common/util/protocols.h"
+#include "common/util/status.h"
 #include "common/util/version.h"
 
 namespace vineyard {
@@ -161,6 +162,19 @@ Status RPCClient::GetMetaData(const std::vector<ObjectID>& ids,
     metas[idx].SetMetaData(this, trees[idx]);
   }
   return Status::OK();
+}
+
+std::shared_ptr<Object> RPCClient::FetchAndGetObject(const ObjectID id) {
+  ObjectID local_object_id;
+  RETURN_NULL_ON_ERROR(this->MigrateObject(id, local_object_id));
+  return this->GetObject(local_object_id);
+}
+
+Status RPCClient::FetchAndGetObject(const ObjectID id,
+                                 std::shared_ptr<Object>& object) {
+  ObjectID local_object_id;
+  RETURN_ON_ERROR(this->MigrateObject(id, local_object_id));
+  return this->GetObject(local_object_id, object);
 }
 
 std::shared_ptr<Object> RPCClient::GetObject(const ObjectID id) {

@@ -809,13 +809,17 @@ void bind_client(py::module& mod) {
           doc::RPCClient_get_remote_blobs)
       .def(
           "get_object",
-          [](RPCClient* self, const ObjectIDWrapper object_id) {
+          [](RPCClient* self, const ObjectIDWrapper object_id, bool const fetch) {
             // receive the status to throw a more precise exception when failed.
             std::shared_ptr<Object> object;
-            throw_on_error(self->GetObject(object_id, object));
+            if (fetch) {
+              throw_on_error(self->FetchAndGetObject(object_id, object));
+            } else {
+              throw_on_error(self->GetObject(object_id, object));
+            }
             return object;
           },
-          "object_id"_a, doc::RPCClient_get_object)
+          "object_id"_a, py::arg("fetch") = false, doc::RPCClient_get_object)
       .def(
           "get_objects",
           [](RPCClient* self, std::vector<ObjectIDWrapper> const& object_ids) {
