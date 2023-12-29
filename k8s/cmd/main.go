@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -24,7 +25,7 @@ import (
 	// import as early as possible to introduce the "version" global flag
 	_ "k8s.io/component-base/version/verflag"
 
-	gosdklog "github.com/v6d-io/v6d/go/vineyard/pkg/common/log"
+	//gosdklog "github.com/v6d-io/v6d/go/vineyard/pkg/common/log"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/client"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/create"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/csi"
@@ -36,7 +37,7 @@ import (
 	"github.com/v6d-io/v6d/k8s/cmd/commands/schedule"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/util"
 	"github.com/v6d-io/v6d/k8s/cmd/commands/util/usage"
-	"github.com/v6d-io/v6d/k8s/pkg/log"
+	//"github.com/v6d-io/v6d/k8s/pkg/log"
 )
 
 var cmdLong = util.LongDesc(`
@@ -80,7 +81,7 @@ func init() {
 
 func main() {
 	parseFlags()
-	setLogLevel()
+	//setLogLevel()
 	tryUsageAndDocs()
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err, "Failed to execute root command")
@@ -97,13 +98,14 @@ func parseFlags() {
 	cmd.FParseErrWhitelist.UnknownFlags = false
 }
 
-func setLogLevel() {
-	if !flags.Verbose {
-		log.SetLogLevel(1)
-		gosdklog.SetLogLevel(1)
+/*
+	func setLogLevel() {
+		if !flags.Verbose {
+			log.SetLogLevel(1)
+			gosdklog.SetLogLevel(1)
+		}
 	}
-}
-
+*/
 func tryUsageAndDocs() {
 	if flags.DumpUsage {
 		cmd.SetUsageFunc(usage.UsageJson)

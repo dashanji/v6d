@@ -48,6 +48,7 @@ func NewDeployCmd() *cobra.Command {
 
 func init() {
 	deployCmd.AddCommand(NewDeployOperatorCmd())
+	//deployCmd.AddCommand(NewDeployCertManagerCmd())
 	deployCmd.AddCommand(NewDeployVineyarddCmd())
 	deployCmd.AddCommand(NewDeployVineyardClusterCmd())
 	deployCmd.AddCommand(NewDeployVineyardDeploymentCmd())

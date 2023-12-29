@@ -52,7 +52,7 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-20.04
-    if: ${{ github.repository == 'v6d-io/v6d' }}
+    #if: ${{ github.repository == 'v6d-io/v6d' }}
     strategy:
       fail-fast: false
       matrix:
@@ -95,6 +95,10 @@ jobs:
           key: vineyard-kubernetes-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             vineyard-kubernetes-go-
+
+      - name: Setup tmate session
+        if: true
+        uses: mxschmitt/action-tmate@v3
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3

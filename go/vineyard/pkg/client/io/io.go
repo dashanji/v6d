@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
-	"github.com/v6d-io/v6d/go/vineyard/pkg/common/log"
 )
 
 const (
@@ -39,7 +39,7 @@ func ConnectIPCSocketRetry(pathname string, conn **net.UnixConn) error {
 		if err == nil || numRetries < 0 {
 			break
 		}
-		log.Infof(
+		logr.Discard().Info(
 			"Connecting to IPC socket failed for pathname %s with error %s, retrying %d more times.",
 			pathname,
 			err,
@@ -85,7 +85,7 @@ func ConnectRPCSocketRetry(host string, port uint16, conn *net.Conn) error {
 		if err == nil || numRetries < 0 {
 			break
 		}
-		log.Infof(
+		logr.Discard().Info(
 			"Connecting to RPC socket failed for endpoint %s:%d with error %s, retrying %d more times.",
 			host,
 			port,

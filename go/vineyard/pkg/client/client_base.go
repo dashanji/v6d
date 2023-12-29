@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-logr/logr"
 	"github.com/v6d-io/v6d/go/vineyard/pkg/client/io"
 	"github.com/v6d-io/v6d/go/vineyard/pkg/common"
 	"github.com/v6d-io/v6d/go/vineyard/pkg/common/log"
@@ -33,7 +34,7 @@ const (
 	VINEYARD_DEFAULT_RPC_PORT = 9600
 )
 
-var logger = log.Log.WithName("client")
+var logger = logr.Logger.WithName(logr.Discard(), "client")
 
 var NOT_CONNECTED_ERR = common.NotConnected()
 

@@ -50,6 +50,7 @@ func init() {
 	_ = defaultscheme.AddToScheme(scheme)
 	_ = v1alpha1.AddToScheme(scheme)
 	_ = apiextensions.AddToScheme(scheme)
+	//_ = certmanagerv1.AddToScheme(scheme)
 }
 
 func Scheme() *runtime.Scheme {
