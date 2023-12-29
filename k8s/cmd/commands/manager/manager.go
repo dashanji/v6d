@@ -26,7 +26,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/cmd/kube-scheduler/app"
-	"k8s.io/kubernetes/pkg/scheduler/framework"
+
+	//"k8s.io/kubernetes/pkg/scheduler/framework"
+	framework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -252,7 +254,7 @@ func startScheduler(mgr manager.Manager, schedulerConfigFile string) {
 
 	command := app.NewSchedulerCommand(
 		app.WithPlugin(schedulers.Name,
-			func(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
+			func(obj runtime.Object, handle framework.FrameworkHandle) (framework.Plugin, error) {
 				return schedulers.New(mgr.GetClient(), mgr.GetConfig(), obj, handle)
 			},
 		),

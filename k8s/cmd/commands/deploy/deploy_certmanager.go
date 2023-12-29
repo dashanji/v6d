@@ -15,6 +15,7 @@ limitations under the License.
 */
 package deploy
 
+/*
 import (
 	"context"
 
@@ -132,3 +133,4 @@ func waitCertManagerReady(c client.Client) error {
 		return true, nil
 	})
 }
+*/
