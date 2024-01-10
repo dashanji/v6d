@@ -29,6 +29,7 @@ unsigned int *to_remove[] = {
 // token list to find
 unsigned int *to_find[] = {
     (unsigned int[]){435, 343, 454, 123, 4533, 0},
+    (unsigned int[]){103, 343, 0},
     NULL,
 };
 
@@ -110,11 +111,53 @@ int main() {
     insert_data_to_rax(t, to_insert);
 
     // remove token list
-    remove_data_from_rax(t, &to_remove);
+    remove_data_from_rax(t, to_remove);
 
     // query token list
-    find_data_in_rax(t, to_insert);
+    find_data_in_rax(t, to_find);
 
     raxFree(t);
     return 0;
 }
+
+/*
+Suppose the maximum size of a vineyard blob is a const MAX.(index < 1024)
+
+Cache_builder will handle the mapping between vineyard blob and token kv_states.
+
+
+Insert token list: [103, 343, 123, 454], kv_states_value is std::map<int, std::vector<double>, std::vector<double>>
+
+1. builder = new Cache_builder(kv_states_value)
+
+raxInsert(rax *rax, unsigned int *s, size_t len, void *data)
+
+2. raxInsert(rax *rax, unsigned int *s, size_t len, builder);
+{
+    insert token list to rax, and the data is kv_states.
+
+    builder mark the 
+
+}
+
+If the value < MAX, we can store it in one vineyard blob.
+If the value > MAX, we can store it in multiple vineyard blobs.
+
+
+
+
+Common case:
+
+case 1:
+    Insert a token list, and a vineyard object can store all kv states of the token list.
+    [103, 343, 123, 454, 0]
+
+
+Special case:
+
+case 1:
+    Insert a token list, but a vineyard object can't store all kv states of the token list.
+    [103, 434, 343, 232, 2334, 343, 2323, ...]
+case 2:
+
+*/

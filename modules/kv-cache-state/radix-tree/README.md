@@ -19,3 +19,7 @@ $ cd modules/kv-cache-state/radix-tree
 $ make
 $ ./radix-test
 ```
+
+If you want to know how the `radix-tree` works, you may get some insights from the picture below.
+
+![Description](../images/process-description.png)
