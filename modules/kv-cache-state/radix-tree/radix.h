@@ -127,7 +127,7 @@ typedef struct raxNode {
      * children, an additional value pointer is present (as you can see
      * in the representation above as "value-ptr" field).
      */
-    unsigned int data[];
+    int data[];
     //unsigned char data[];
 } raxNode;
 
@@ -176,11 +176,11 @@ typedef int (*raxNodeCallback)(raxNode **noderef);
 typedef struct raxIterator {
     int flags;
     rax *rt;                /* Radix tree we are iterating. */
-    unsigned int *key;     /* The current string. */
+    int *key;     /* The current string. */
     void *data;             /* Data associated to this key. */
     size_t key_len;         /* Current key length. */
     size_t key_max;         /* Max key len the current key buffer can hold. */
-    unsigned int key_static_string[RAX_ITER_STATIC_LEN];
+    int key_static_string[RAX_ITER_STATIC_LEN];
     raxNode *node;          /* Current node. Only for unsafe iteration. */
     raxStack stack;         /* Stack used for unsafe iteration. */
     raxNodeCallback node_cb; /* Optional node callback. Normally set to NULL. */
@@ -191,27 +191,31 @@ extern void *raxNotFound;
 
 /* Exported API. */
 rax *raxNew(void);
-int raxInsert(rax *rax, unsigned int *s, size_t len, void *data, void **old);
-int raxTryInsert(rax *rax, unsigned int *s, size_t len, void *data, void **old);
-int raxRemove(rax *rax, unsigned int *s, size_t len, void **old);
-void *raxFind(rax *rax, unsigned int *s, size_t len);
+int raxInsert(rax *rax, const int *s, size_t len, void *data, void **old);
+int raxTryInsert(rax *rax,const int *s, size_t len, void *data, void **old);
+raxNode *raxInsertAndReturnDataNode(rax *rax, const int *s, size_t len, void *data, void **old);
+int raxRemove(rax *rax, int *s, size_t len, void **old);
+void *raxFind(rax *rax, int *s, size_t len);
+raxNode *raxFindAndReturnDataNode(rax *rax, int *s, size_t len);
 void raxFree(rax *rax);
 void raxFreeWithCallback(rax *rax, void (*free_callback)(void*));
 void raxStart(raxIterator *it, rax *rt);
-int raxSeek(raxIterator *it, const char *op, unsigned int *ele, size_t len);
+int raxSeek(raxIterator *it, const char *op, int *ele, size_t len);
 int raxNext(raxIterator *it);
 int raxPrev(raxIterator *it);
 int raxRandomWalk(raxIterator *it, size_t steps);
-int raxCompare(raxIterator *iter, const char *op, unsigned int *key, size_t key_len);
+int raxCompare(raxIterator *iter, const char *op, int *key, size_t key_len);
 void raxStop(raxIterator *it);
 int raxEOF(raxIterator *it);
 void raxShow(rax *rax);
 uint64_t raxSize(rax *rax);
 unsigned long raxTouch(raxNode *n);
 void raxSetDebugMsg(int onoff);
+void raxTraverse(raxNode *rax, raxNode ***dataNodeList);
 
 /* Internal API. May be used by the node callback in order to access rax nodes
  * in a low level way, so this function is exported as well. */
 void raxSetData(raxNode *n, void *data);
+void *raxGetData(raxNode *n);
 
 #endif

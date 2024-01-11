@@ -9,27 +9,27 @@ typedef struct test_data {
 } test_data;
 
 // token list to insert
-unsigned int *to_insert[] = {
-    (unsigned int[]){103, 343, 123, 454, 0},
-    (unsigned int[]){102, 343, 4564, 546, 342, 0},
-    (unsigned int[]){103, 343, 4564, 546, 342, 0},
-    (unsigned int[]){435, 7645, 4564, 546, 0},
-    (unsigned int[]){435, 7645, 4564, 232, 454, 943, 0},
-    (unsigned int[]){435, 343, 454, 123, 4533, 0},
-    (unsigned int[]){435, 7645, 4564, 232, 454, 943, 0},
+int *to_insert[] = {
+    (int[]){103, 343, 123, 454, 0},
+    (int[]){102, 343, 4564, 546, 342, 0},
+    (int[]){103, 343, 4564, 546, 342, 0},
+    (int[]){435, 7645, 4564, 546, 0},
+    (int[]){435, 7645, 4564, 232, 454, 943, 0},
+    (int[]){435, 343, 454, 123, 4533, 0},
+    (int[]){435, 7645, 4564, 232, 454, 943, 0},
     NULL,
 };
 
 // token list to delete
-unsigned int *to_remove[] = {
-    (unsigned int[]){435, 7645, 4564, 546, 0},
+int *to_remove[] = {
+    (int[]){435, 7645, 4564, 546, 0},
     NULL,
 };
 
 // token list to find
-unsigned int *to_find[] = {
-    (unsigned int[]){435, 343, 454, 123, 4533, 0},
-    (unsigned int[]){103, 343, 0},
+int *to_find[] = {
+    (int[]){435, 343, 454, 123, 4533, 0},
+    (int[]){103, 343, 0},
     NULL,
 };
 
@@ -42,19 +42,19 @@ void print_uint_array_as_string(unsigned int array[]) {
     printf("]");
 }
 
-size_t uint_array_len(unsigned int *s) {
+size_t int_array_len(int *s) {
     size_t len = 0;
     while (s[len] != 0) len++;
     return len;
 }
 
-unsigned long insert_data_to_rax(rax *t, unsigned int *toadd[]) {
+unsigned long insert_data_to_rax(rax *t, int *toadd[]) {
     unsigned long failed_insertions = 0;
     for (int i = 0; toadd[i] != NULL; i++) {
         struct test_data *td = (struct test_data *)malloc(sizeof(struct test_data));
         td->k_index = i;
         td->v_index = i;
-        int retval = raxInsert(t, (unsigned char *)toadd[i], uint_array_len(toadd[i]), (void *)td, NULL);
+        int retval = raxInsert(t, (unsigned char *)toadd[i], int_array_len(toadd[i]), (void *)td, NULL);
         if (retval == 0) {
             if (errno == 0) {
                 printf("Overwritten token list: ");
@@ -73,10 +73,31 @@ unsigned long insert_data_to_rax(rax *t, unsigned int *toadd[]) {
     return failed_insertions;
 }
 
+unsigned long insert_data_to_rax_and_return_node(rax *t, int *toadd[]) {
+    unsigned len = 0;
+    unsigned long failed_insertions = 0;
+    for (int i = 0; toadd[i] != NULL; i++) {
+        struct test_data *td = (struct test_data *)malloc(sizeof(struct test_data));
+        td->k_index = i;
+        td->v_index = i;
+        raxNode *node = raxInsertAndReturnDataNode(t, (unsigned char *)toadd[i], int_array_len(toadd[i]), (void *)td, NULL);
+        if (node != NULL) {
+            printf("Added token list: ");
+            print_uint_array_as_string(toadd[i]);
+            printf(", data: {k_index: %d, v_index: %d}\n", td->k_index, td->v_index);
+            struct test_data *new_td = (struct test_data *)malloc(sizeof(struct test_data));
+            new_td->k_index = i+1;
+            new_td->v_index = i+1;
+            raxSetData(node,new_td);
+        }
+    }
+    return failed_insertions;
+}
+
 // remove data from rax
-void remove_data_from_rax(rax *t, unsigned int *toremove[]) {
+void remove_data_from_rax(rax *t, int *toremove[]) {
     for (int i = 0; toremove[i] != NULL; i++) {
-        if (raxRemove(t, (unsigned char *)toremove[i], uint_array_len(toremove[i]), NULL)) {
+        if (raxRemove(t, (unsigned char *)toremove[i], int_array_len(toremove[i]), NULL)) {
             printf("raxRemove success, deleted token list: ");
         } else {
             printf("raxRemove failed for token list: ");
@@ -87,9 +108,9 @@ void remove_data_from_rax(rax *t, unsigned int *toremove[]) {
 }
 
 // find data in rax
-void find_data_in_rax(rax *t, unsigned int *tofind[]) {
+void find_data_in_rax(rax *t, int *tofind[]) {
     for (int i = 0; tofind[i] != NULL; i++) {
-        void *data = raxFind(t, (unsigned char *)tofind[i], uint_array_len(tofind[i]));
+        void *data = raxFind(t, (unsigned char *)tofind[i], int_array_len(tofind[i]));
         if (data == raxNotFound) {
             printf("Token list ");
             print_uint_array_as_string(tofind[i]);
@@ -103,61 +124,62 @@ void find_data_in_rax(rax *t, unsigned int *tofind[]) {
     }
 }
 
+/* Test the random walk function. */
+int randomWalkTest(void) {
+    rax *t = raxNew();
+    long numele;
+    for (numele = 0; to_insert[numele] != NULL; numele++) {
+        raxInsert(t,(int*)to_insert[numele],
+                    int_array_len(to_insert[numele]),(void*)numele,NULL);
+    }
+
+    raxIterator iter;
+    raxStart(&iter,t);
+    raxSeek(&iter,"^",NULL,0);
+    int maxloops = 100000;
+    while(raxRandomWalk(&iter,0) && maxloops--) {
+        int nulls = 0;
+        for (long i = 0; i < numele; i++) {
+            if (to_insert[i] == NULL) {
+                nulls++;
+                continue;
+            }
+            if (int_array_len(to_insert[i]) == iter.key_len &&
+                memcmp(to_insert[i],iter.key,iter.key_len) == 0)
+            {
+                to_insert[i] = NULL;
+                nulls++;
+            }
+        }
+        if (nulls == numele) break;
+    }
+    if (maxloops == 0) {
+        printf("randomWalkTest() is unable to report all the elements "
+               "after 100k iterations!\n");
+        return 1;
+    }
+    raxStop(&iter);
+    raxFree(t);
+    return 0;
+}
+
 int main() {
     rax *t = raxNew();
     if (t == NULL) return 1;
 
     // insert token list
-    insert_data_to_rax(t, to_insert);
+    //insert_data_to_rax(t, to_insert);
+
+    insert_data_to_rax_and_return_node(t, to_insert);
 
     // remove token list
     remove_data_from_rax(t, to_remove);
 
     // query token list
-    find_data_in_rax(t, to_find);
+    find_data_in_rax(t, to_insert);
 
     raxFree(t);
+
+    randomWalkTest();
     return 0;
 }
-
-/*
-Suppose the maximum size of a vineyard blob is a const MAX.(index < 1024)
-
-Cache_builder will handle the mapping between vineyard blob and token kv_states.
-
-
-Insert token list: [103, 343, 123, 454], kv_states_value is std::map<int, std::vector<double>, std::vector<double>>
-
-1. builder = new Cache_builder(kv_states_value)
-
-raxInsert(rax *rax, unsigned int *s, size_t len, void *data)
-
-2. raxInsert(rax *rax, unsigned int *s, size_t len, builder);
-{
-    insert token list to rax, and the data is kv_states.
-
-    builder mark the 
-
-}
-
-If the value < MAX, we can store it in one vineyard blob.
-If the value > MAX, we can store it in multiple vineyard blobs.
-
-
-
-
-Common case:
-
-case 1:
-    Insert a token list, and a vineyard object can store all kv states of the token list.
-    [103, 343, 123, 454, 0]
-
-
-Special case:
-
-case 1:
-    Insert a token list, but a vineyard object can't store all kv states of the token list.
-    [103, 434, 343, 232, 2334, 343, 2323, ...]
-case 2:
-
-*/
