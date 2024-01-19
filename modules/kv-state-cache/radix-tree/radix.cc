@@ -44,6 +44,15 @@
 
 #include RAX_MALLOC_INCLUDE
 
+#include <iostream>
+#include "common/util/logging.h"
+using namespace vineyard;
+typedef struct nodeData1 {
+  int data_length;
+  void* data;
+  void* cache_node;
+} nodeData1;
+
 /* This is a special pointer that is guaranteed to never have the same value
  * of a radix tree node. It's used in order to report "not found" error without
  * requiring the function to have multiple return values. */
@@ -2123,7 +2132,7 @@ raxNode *raxSplit(rax *rax, int *s, size_t len, void *data){
     int items = stack.items;
     while (items > 0) {
         raxNode *node = (raxNode *)raxStackPop(&stack);
-        if (node->numnodes >= (uint32_t)RAX_NODE_MAX_SIZE/2 || node->issubtree) {
+        if (node->numnodes >= (uint32_t)rax->numele/2 || node->issubtree) {
             splitNode = childNode;
             raxStackPush(&stack, node);
             break;
@@ -2148,9 +2157,14 @@ raxNode *raxSplit(rax *rax, int *s, size_t len, void *data){
 * Traverse the subtree and return all the nodes that contain data under the subtree 
 * these nodes are stored in the dataNodeList
 */
-void raxTraverseSubTree(raxNode *n, std::vector<std::shared_ptr<raxNode>> &dataNodeList) {
+
+void raxTraverseSubTree(raxNode *n, std::vector<raxNode*> &dataNodeList) {
     if (n->iskey) {
-        dataNodeList.push_back(std::shared_ptr<raxNode>(n, [](raxNode*){}));
+        dataNodeList.push_back(n);
+        nodeData1 *data = (nodeData1*)raxGetData(n);
+        LOG(INFO)<<"data:" << *((short*)data->data);
+    } else {
+        LOG(INFO) << "n is not key";
     }
 
     int numchildren = n->iscompr ? 1 : n->size;

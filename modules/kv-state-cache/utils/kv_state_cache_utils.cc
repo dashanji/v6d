@@ -221,7 +221,6 @@ void sync() {
 
   LOG(INFO) << "stage 7";
   // 7. create a global cache object replica
-  // TBD cache stragety
   std::dynamic_pointer_cast<KVStateCache>(kv_state_cache)->Resolve();
   kv_state_cache_builder = std::make_shared<KVStateCacheBuilder>(
       client, std::dynamic_pointer_cast<KVStateCache>(kv_state_cache));
@@ -243,7 +242,7 @@ void threadFunc() {
     }
     LOG(INFO) << "Try sync";
     pthread_mutex_lock(&sync_mutex);
-    sync();
+    // sync();
     pthread_mutex_unlock(&sync_mutex);
     // break;
   }
@@ -263,12 +262,4 @@ void threadFunc() {
       2. merge the object with local cache (e.g. create a new child_cache_object
   and merge)
       3. goto d
-*/
-/*    node with attr      node         cache node     data node
- addr: 0x7e6fec007be0 0x7e6fec0077e0 0x7e6fec001100 0
- addr: 0x7e6fec007be0 0x7e6fec0077e0 0x7e6fec001100 0x7e6fec009ea0
-
-
-
- 0x5654cf368c60 0x5654cf368f40 0x7e6fec001100 0x7e6fec009ea0
 */

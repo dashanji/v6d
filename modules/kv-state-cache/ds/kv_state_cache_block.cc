@@ -159,6 +159,7 @@ void KVStateCacheBlockBuilder::Update(double* k_data, double* v_data,
   double* key_data = (double*) k_builder->data();
   double* value_data = (double*) v_builder->data();
   VINEYARD_ASSERT((unsigned long) this->dimension == data_length);
+  LOG(INFO) << "stage 2.2";
   for (unsigned long i = 0; i < data_length; ++i) {
     key_data[index * this->dimension + i] = k_data[i];
   }

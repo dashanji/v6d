@@ -119,6 +119,15 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     lru_strategy = new LRUStrategy(cache_capacity);
   }
 
+  RadixTree(rax* rax_tree, int cache_capacity) {
+    LOG(INFO) << "init radix tree";
+    this->tree = rax_tree;
+    // this->sub_tree = this->tree;
+    this->custom_data = NULL;
+    this->custom_data_length = 0;
+    lru_strategy = new LRUStrategy(cache_capacity);
+  }
+
   RadixTree(void* custom_data, int custom_data_length, int cache_capacity) {
     LOG(INFO) << "init radix tree with custom data";
     this->tree = raxNew();
@@ -433,13 +442,20 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     raxNode* sub_tree_root_node =
         raxSplit(this->tree, tokens.data(), tokens.size(), dummy_data);
 
+    LOG(INFO) << "node" << ((nodeData *)raxGetData(sub_tree_root_node))->data;
     // TBD
     // if the sub_tree is null, delete this pointer.
-    std::shared_ptr<RadixTree> sub_tree =
-        std::make_shared<RadixTree>(this->lru_strategy->GetCapacity());
-    sub_tree->tree = this->tree;
     rax* sub_rax = raxNew();
+    std::shared_ptr<RadixTree> sub_tree =
+        std::make_shared<RadixTree>(sub_rax, this->lru_strategy->GetCapacity());
     sub_rax->head = sub_tree_root_node;
+    // TBD
+    // here may be have some problem.
+    sub_rax->numele = sub_tree_root_node->numnodes;
+    sub_rax->numnodes = sub_tree_root_node->numnodes;
+    LOG(INFO) << "sub tree addr:" << sub_tree;
+    // std::shared_ptr<NodeWithTreeAttri> evicted_node;
+    // Delete(tokens, evicted_node);
     return sub_tree;
   }
 
@@ -452,13 +468,16 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
       return nodes;
     }
 
-    std::vector<std::shared_ptr<raxNode>> dataNodeList;
+    LOG(INFO) << "tree addr:" << radix_tree;
+    std::vector<raxNode*> dataNodeList;
     raxNode* headNode = radix_tree->tree->head;
     raxTraverseSubTree(headNode, dataNodeList);
     for (size_t i = 0; i < dataNodeList.size(); i++) {
       nodes.push_back(std::make_shared<NodeWithTreeAttri>(
-          std::make_shared<Node>(dataNodeList[i].get()), radix_tree));
+          std::make_shared<Node>(dataNodeList[i]), radix_tree));
+      LOG(INFO) << "data addr:" << nodes[i]->get_node()->get_data();
     }
+    LOG(INFO) << "Node list size:" << nodes.size();
     return nodes;
   }
 
