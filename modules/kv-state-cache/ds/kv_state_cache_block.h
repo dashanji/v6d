@@ -101,7 +101,7 @@ class KVStateCacheBlockBuilder : public ObjectBuilder {
   // TBD
   // support more than 64 kv-state cache slots
   uint64_t bitmap;
-  pthread_spinlock_t spin_lock;
+  //pthread_spinlock_t spin_lock;
   int dimension;
 
   int FindEmptySlot();
@@ -140,9 +140,9 @@ class KVStateCacheBlockBuilder : public ObjectBuilder {
 
   std::shared_ptr<Object> _Seal(Client& client) override;
 
-  void Lock() { pthread_spin_lock(&(this->spin_lock)); }
+  //void Lock() { pthread_spin_lock(&(this->spin_lock)); }
 
-  void UnLock() { pthread_spin_unlock(&(this->spin_lock)); }
+  //void UnLock() { pthread_spin_unlock(&(this->spin_lock)); }
 
   const std::shared_ptr<TensorBuilder<double>> getKBuilder() {
     return k_builder;

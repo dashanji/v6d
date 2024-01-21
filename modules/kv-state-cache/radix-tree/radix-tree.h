@@ -437,10 +437,10 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     return radix_tree;
   }
 
-  std::shared_ptr<RadixTree> Split(std::vector<int> tokens) {
-    nodeData* dummy_data = new nodeData();
+  std::shared_ptr<RadixTree> Split(std::shared_ptr<RadixTree> root_tree,
+              std::vector<int> tokens) {
     raxNode* sub_tree_root_node =
-        raxSplit(this->tree, tokens.data(), tokens.size(), dummy_data);
+        raxSplit(root_tree->tree, this->tree, tokens.data(), tokens.size());
 
     LOG(INFO) << "node" << ((nodeData *)raxGetData(sub_tree_root_node))->data;
     // TBD
@@ -451,7 +451,7 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     sub_rax->head = sub_tree_root_node;
     // TBD
     // here may be have some problem.
-    sub_rax->numele = sub_tree_root_node->numnodes;
+    //sub_rax->numele = sub_tree_root_node->numnodes;
     sub_rax->numnodes = sub_tree_root_node->numnodes;
     LOG(INFO) << "sub tree addr:" << sub_tree;
     // std::shared_ptr<NodeWithTreeAttri> evicted_node;
@@ -467,8 +467,10 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
       LOG(INFO) << "traverse failed";
       return nodes;
     }
+    LOG(INFO) << "radix_tree is";
+    raxShow(radix_tree->tree);
 
-    LOG(INFO) << "tree addr:" << radix_tree;
+    LOG(INFO) << "tree node addr:" << radix_tree->tree->head;
     std::vector<raxNode*> dataNodeList;
     raxNode* headNode = radix_tree->tree->head;
     raxTraverseSubTree(headNode, dataNodeList);

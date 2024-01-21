@@ -69,7 +69,7 @@ void KVStateCacheBlock::Construct(const ObjectMeta& meta) {
 
 KVStateCacheBlockBuilder::KVStateCacheBlockBuilder(Client& client,
                                                    int dimension) {
-  pthread_spin_init(&(this->spin_lock), 0);
+  //pthread_spin_init(&(this->spin_lock), 0);
   this->bitmap = UINT64_MAX;
   std::vector<int64_t> shape = {LIST_SIZE, dimension};
   this->k_builder = std::make_shared<TensorBuilder<double>>(client, shape);
@@ -79,7 +79,7 @@ KVStateCacheBlockBuilder::KVStateCacheBlockBuilder(Client& client,
 
 KVStateCacheBlockBuilder::KVStateCacheBlockBuilder(
     Client& client, std::shared_ptr<KVStateCacheBlock> kv_state_cache_block) {
-  pthread_spin_init(&(this->spin_lock), 0);
+  //pthread_spin_init(&(this->spin_lock), 0);
   this->bitmap = kv_state_cache_block->bitmap;
   this->dimension = kv_state_cache_block->dimension;
   std::vector<int64_t> shape = {LIST_SIZE, dimension};

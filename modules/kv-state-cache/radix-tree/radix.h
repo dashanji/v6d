@@ -221,7 +221,7 @@ void raxSetDebugMsg(int onoff);
 void raxTraverse(raxNode* rax,
                  std::vector<std::shared_ptr<raxNode>>& dataNodeList);
 void raxTraverseSubTree(raxNode* n, std::vector<raxNode*> &dataNodeList);
-raxNode* raxSplit(rax* rax, int* s, size_t len, void* data);
+raxNode* raxSplit(rax* root, rax* rax, int* s, size_t len);
 void raxSerialize(rax* root, std::vector<std::vector<int>>& tokenList,
                   std::vector<void*>& dataList);
 

@@ -15,6 +15,7 @@ file(GLOB VINEYARD_KV_STATE_CACHE_SRCS "${CMAKE_CURRENT_SOURCE_DIR}"
                                 "utils/*.h"
                                 "strategy/*.cc"
                                 "strategy/*.h"
+                                "lz4/lib/*.c"
                                 "lz4/lib/*.h"
 )
 

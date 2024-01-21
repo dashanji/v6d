@@ -1171,8 +1171,8 @@ int raxRemove(rax *rax, int *s, size_t len, void **old) {
         int added_nodes = 0;
         while(h != rax->head) {
             child = h;
-            debugf("Freeing child %p, ", (void*)child);
-            debugf(" key:%d\n",  child->iskey)
+            printf("Freeing child %p, ", (void*)child);
+            printf(" key:%d\n",  child->iskey);
             rax_free(child);
             rax->numnodes--;
             added_nodes--;
@@ -1184,7 +1184,7 @@ int raxRemove(rax *rax, int *s, size_t len, void **old) {
         }
         raxStackAddNumNodes(&ts, added_nodes);
         if (child) {
-            debugf("Unlinking child %p from parent %p\n",
+            printf("Unlinking child %p from parent %p\n",
                 (void*)child, (void*)h);
             raxNode *newNode = (raxNode *)raxRemoveChild(h,child);
             if (newNode != h) {
@@ -1995,7 +1995,10 @@ void raxRecursiveShow(int level, int lpad, raxNode *n) {
         numchars += printf("%d ", n->data[i]);
     }
     numchars += printf("%c %d ", e, n->numnodes);
-
+    numchars += printf("%p ", (void*)n);
+    if (n->issubtree) {
+        numchars += printf("# ");
+    }
     if (n->iskey) {
         numchars += printf("=%p",raxGetData(n));
     }
@@ -2115,24 +2118,23 @@ void raxTraverse(raxNode *n, std::vector<std::shared_ptr<raxNode>> &dataNodeList
 /*
 * Split the tree into two sub trees, and return the root node of the new sub tree
 *
-* Input a token list, and split the tree into two sub trees via the token list
+* split the tree into two sub trees via the token list
 * It will find the node that nearest N/2 but not more than N/2, and split the tree
 * into two sub trees. If there is no node that has N/2 children, it will split the
 * tree from the root node.
 * 
 */
-raxNode *raxSplit(rax *rax, int *s, size_t len, void *data){
-    int retval = raxInsert(rax, s, len, data, NULL);
-    if (retval == 0 && errno != 0) {
-        return NULL;
+raxNode *raxSplit(rax *root, rax *rax, int *s, size_t len){
+    if (rax->numnodes != rax->head->numnodes) {
+        rax->numnodes = rax->head->numnodes;
     }
     raxNode *childNode = NULL;
     raxNode *splitNode = NULL;
-    raxStack stack = raxFindWithStack(rax, s, len);
+    raxStack stack = raxFindWithStack(root, s, len);
     int items = stack.items;
     while (items > 0) {
         raxNode *node = (raxNode *)raxStackPop(&stack);
-        if (node->numnodes >= (uint32_t)rax->numele/2 || node->issubtree) {
+        if (node->numnodes > (uint32_t)rax->numnodes/2 || node->issubtree) {
             splitNode = childNode;
             raxStackPush(&stack, node);
             break;

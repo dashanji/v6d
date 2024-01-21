@@ -168,8 +168,8 @@ void KVStateCacheBuilder::Update(Client& client,
      */
     LOG(INFO) << "triggle splits";
     std::shared_ptr<NodeWithTreeAttri> evicted_node = nullptr;
+    std::shared_ptr<RadixTree> new_tree = tree->Split(this->root_tree, token_list_copy);
     this->root_tree->Delete(token_list_copy, evicted_node);
-    std::shared_ptr<RadixTree> new_tree = tree->Split(token_list_copy);
 
     LOG(INFO) << "tree split success";
     std::vector<std::shared_ptr<NodeWithTreeAttri>> node_with_tree_attri_list =
