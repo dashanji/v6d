@@ -187,6 +187,9 @@ typedef struct raxIterator {
   size_t key_len; /* Current key length. */
   size_t key_max; /* Max key len the current key buffer can hold. */
   int key_static_tokens[RAX_ITER_STATIC_LEN];
+  bool add_to_subtree_list; /* Whether to add the current node to the subtree
+                               list. */
+  std::vector<std::vector<int> > *subtree_list;
   raxNode* node;           /* Current node. Only for unsafe iteration. */
   raxStack stack;          /* Stack used for unsafe iteration. */
   raxNodeCallback node_cb; /* Optional node callback. Normally set to NULL. */
@@ -203,6 +206,9 @@ int raxInsertAndReturnDataNode(rax* rax, int* s, size_t len, void* data,
                                void** node, void** old);
 int raxRemove(rax* rax, int* s, size_t len, void** old);
 void* raxFind(rax* rax, int* s, size_t len);
+raxStack raxFindWithStack(rax *rax, int *s, size_t len);
+raxNode *raxFindNode(rax *rax, int *s, size_t len);
+int raxFindNodeWithParent(rax *rax, int *s, size_t len, void **node, void **parent);
 raxNode* raxFindAndReturnDataNode(rax* rax, int* s, size_t len);
 void raxFree(rax* rax);
 void raxFreeWithCallback(rax* rax, void (*free_callback)(void*));
@@ -216,14 +222,19 @@ void raxStop(raxIterator* it);
 int raxEOF(raxIterator* it);
 void raxShow(rax* rax);
 uint64_t raxSize(rax* rax);
+raxNode *raxReallocForTreeCustomData(raxNode *n, void **parent);
+void raxSetCustomData(raxNode *n, void *data);
+/* Get the node auxiliary data. */
+void *raxGetCustomData(raxNode *n);
 unsigned long raxTouch(raxNode* n);
 void raxSetDebugMsg(int onoff);
 void raxTraverse(raxNode* rax,
                  std::vector<std::shared_ptr<raxNode>>& dataNodeList);
 void raxTraverseSubTree(raxNode* n, std::vector<raxNode*> &dataNodeList);
 raxNode* raxSplit(rax* root, rax* rax, int* s, size_t len);
-void raxSerialize(rax* root, std::vector<std::vector<int>>& tokenList,
-                  std::vector<void*>& dataList);
+void raxIterate(rax *root, std::vector<std::vector<int> > &tokenList, std::vector<void*> &dataList);
+void raxSerialize(rax* root, std::vector<std::vector<int> >& tokenList, std::vector<void*>& dataList,
+                 std::vector<std::vector<int>>* subtreeList, std::vector<void*> *subtreeNodeList);
 
 /* Internal API. May be used by the node callback in order to access rax nodes
  * in a low level way, so this function is exported as well. */

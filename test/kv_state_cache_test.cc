@@ -100,6 +100,7 @@ int main() {
   // std::vector<int> round_2_tokens = {1, 2, 3, 4, 5, 7, 8, 9, 10};
   inference(round_1_tokens);
   inference(round_1_tokens);
+  printf("#############before sleep############\n");
   sleep(5);
   // inference(round_2_tokens);
   // inference(round_2_tokens);

@@ -36,6 +36,11 @@ typedef struct nodeData {
   std::shared_ptr<LRUCacheNode> cache_node;
 } nodeData;
 
+typedef struct subtreeCustomData {
+  int data_length;
+  void* data;
+} subtreeCustomData;
+
 class Node {
  private:
   nodeData* data;
@@ -193,6 +198,35 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     size_t delete_tokens_array_len = tokens.size();
 
     nodeData* old_data;
+    // delete all the nodes in the sub tree
+    rax *root = raxNew();
+    std::vector<std::vector<int>> token_list;
+    std::vector<void*> data_list;
+    root->head = this->tree->head;
+    raxNode *node = raxFindNode(root, delete_tokens_array, delete_tokens_array_len);
+    root->head = node;
+    raxIterate(root, token_list, data_list);
+    // add the delete token as the prefix of the token list
+    for (size_t i = 0; i < token_list.size(); i++) {
+      token_list[i].insert(token_list[i].begin(), tokens.begin(), tokens.end());
+    }
+    token_list.push_back(tokens);
+    for (size_t i = 0; i < token_list.size(); i++) {
+      LOG(INFO) << "delete token list:";
+      for (size_t j = 0; j < token_list[i].size(); j++) {
+        LOG(INFO) << token_list[i][j];
+      }
+      if (raxRemove(root, token_list[i].data(), token_list[i].size(),
+                    (void**) &old_data) != 1) {
+        LOG(INFO) << "remove failed";
+        return;
+      }
+      std::shared_ptr<Node> node = std::make_shared<Node>(old_data);
+      std::shared_ptr<LRUCacheNode> cache_node = node->get_cache_node();
+      lru_strategy->Remove(cache_node);
+      delete old_data;
+    }
+    /*
     int retval = raxRemove(this->tree, delete_tokens_array,
                            delete_tokens_array_len, (void**) &old_data);
     if (retval == 1) {
@@ -204,6 +238,7 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
     } else {
       LOG(INFO) << "remove failed";
     }
+    */
   }
 
   std::shared_ptr<NodeWithTreeAttri> Query(std::vector<int> key) {
@@ -236,17 +271,26 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
   std::string Serialize() {
     std::vector<std::vector<int>> token_list;
     std::vector<void*> data_list;
-    raxSerialize(this->tree, token_list, data_list);
+    std::vector<std::vector<int>> subtree_token_list;
+    raxSerialize(this->tree, token_list, data_list, &subtree_token_list);
 
     std::map<std::shared_ptr<LRUCacheNode>, bool> cache_node_map;
     std::shared_ptr<LRUCacheNode> current_node =
         this->lru_strategy->GetHeader();
 
     // the string format is:
-    // [token list] [data hex string]\n
+    // [token list]|[data hex string]\n
+    // ...
+    // [token list]|[data hex string]\t
+    // [subtree token list]|[custom data string]\n
+    // ...
+    // [subtree token list]|[custom data string]\n
     // E.g
     //  tokens | data
-    // 1,2|0800000008000000xxxx
+    // 1|0800000008000000xxxx\n
+    // 1,2|0800000008000000xxxx\n
+    // 1,2,3|0800000008000000xxxx\t
+    // 1,2|0800000008000000xxxx\n
     std::string serialized_str;
     while (current_node != nullptr) {
       cache_node_map[current_node] = true;
@@ -278,6 +322,25 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
       }
       current_node = current_node->next;
     }
+    serialized_str[serialized_str.size() - 1] = '\t';
+    for (size_t i = 0; i < subtree_token_list.size(); i++) {
+      for (size_t j = 0; j < subtree_token_list[i].size(); j++) {
+        serialized_str += std::to_string(subtree_token_list[i][j]);
+        if (j < subtree_token_list[i].size() - 1) {
+          serialized_str += ",";
+        }
+      }
+      serialized_str += "|";
+      // convert data to hex string
+      char* bytes = (char*) ((nodeData*) data_list[i])->data;
+      std::ostringstream oss;
+
+      for (int i = 0; i < ((nodeData*) data_list[i])->data_length; ++i) {
+        oss << bytes[i];
+      }
+      serialized_str += oss.str() + "\n";
+    }
+
 
     // use LZ4 to compress the serialized string
     const char* const src = serialized_str.c_str();
@@ -486,6 +549,11 @@ class RadixTree : public std::enable_shared_from_this<RadixTree> {
   void* GetCustomData() { return custom_data; }
 
   void SetCustomData(void* custom_data, int custom_data_length) {
+    raxReallocForTreeCustomData(this->tree->head);
+    subtreeCustomData *cdata = new subtreeCustomData;
+    cdata->data = custom_data;
+    cdata->data_length = custom_data_length;
+    raxSetCustomData(this->tree->head, cdata);
     this->custom_data = custom_data;
     this->custom_data_length = custom_data_length;
   }
