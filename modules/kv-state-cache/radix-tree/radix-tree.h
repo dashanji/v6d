@@ -21,7 +21,7 @@ limitations under the License.
 #include "common/util/base64.h"
 #include "common/util/logging.h"
 #include "kv-state-cache/strategy/LRU_strategy.h"
-#include "lz4.h"
+//#include "lz4.h"
 
 #include <iomanip>
 #include <map>
