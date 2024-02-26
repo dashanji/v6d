@@ -319,7 +319,6 @@ std::shared_ptr<RadixTree> RadixTree::Deserialize(std::string data) {
     LOG(ERROR)
         << "Error: original size unknown. Use streaming decompression instead.";
   }
-  LOG(INFO) << "decompressed size:" << ds;
 
   std::string decompressedStr(ds + 1, '\0');
   int decompressedSize = ZSTD_decompress((void*) (decompressedStr.data()), ds,
@@ -348,7 +347,6 @@ std::shared_ptr<RadixTree> RadixTree::Deserialize(std::string data) {
       line.pop_back();
       continue;
     }
-    LOG(INFO) << "data line:" << line << std::endl;
     std::istringstream lineStream(line);
     std::string tokenListPart, timestampPart, dataPart, subTreeSizePart;
 
@@ -367,7 +365,7 @@ std::shared_ptr<RadixTree> RadixTree::Deserialize(std::string data) {
       }
     }
     if (!std::getline(lineStream, dataPart)) {
-      LOG(INFO) << "data length is 0";
+      LOG(ERROR) << "data length is 0";
     }
 
     std::istringstream keyStream(tokenListPart);
@@ -381,17 +379,14 @@ std::shared_ptr<RadixTree> RadixTree::Deserialize(std::string data) {
     if (isMainTree) {
       std::istringstream timestampStream(timestampPart);
       if (!(timestampStream >> std::hex >> timestamp)) {
-        LOG(INFO) << "Invalid timestamp format.";
-        throw std::runtime_error("Invalid timestamp format.");
+        LOG(ERROR) << "Invalid timestamp format.";
       }
 
       std::istringstream subTreeSizeStream(subTreeSizePart);
       uint32_t subTreeSize;
       if (!(subTreeSizeStream >> std::hex >> subTreeSize)) {
-        LOG(INFO) << "Invalid sub tree size format.";
-        throw std::runtime_error("Invalid sub tree size format.");
+        LOG(ERROR) << "Invalid sub tree size format.";
       }
-      LOG(INFO) << "Deserialize sub tree size:" << subTreeSize;
       subTreeSizeList.push_back(subTreeSize);
     }
 

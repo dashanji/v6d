@@ -50,7 +50,6 @@
 #include "common/util/logging.h"
 using namespace vineyard;
 
-/* clang-format off */
 /* This is a special pointer that is guaranteed to never have the same value
  * of a radix tree node. It's used in order to report "not found" error without
  * requiring the function to have multiple return values. */
@@ -2860,5 +2859,3 @@ void testIteRax(rax *tree) {
 raxNode* raxGetFirstChildPtr(raxNode* node) {
     return raxGetFirstChildPtr(node);
 }
-
-/* clang-format off */
