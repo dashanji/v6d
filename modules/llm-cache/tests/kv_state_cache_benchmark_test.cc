@@ -27,16 +27,16 @@ limitations under the License.
 
 using namespace vineyard;  //  NOLINT(build/namespaces)
 
-#define TENSORBYTES 800
-#define CAPACITY 1000
-#define LAYER 64
-#define BLOCK_SIZE 100
+constexpr int TENSORBYTES = 800;
+constexpr int CAPACITY = 1000;
+constexpr int LAYER = 64;
+constexpr int BLOCK_SIZE = 100;
 
 KVStateCacheManager* manager;
 
 void init() {
   manager =
-      new KVStateCacheManager(TENSORBYTES, CAPACITY, LAYER, DEFAULT_BLOCK_SIZE);
+      new KVStateCacheManager(TENSORBYTES, CAPACITY, LAYER, BLOCK_SIZE);
 }
 
 std::vector<int> generate_random_tokens(size_t max_length) {

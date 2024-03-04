@@ -29,7 +29,7 @@ char token_sequence_2[] = "2";
 char token_sequence_3[] = "3";
 char token_sequence_4[] = "4";
 
-const char* program = "./build/bin/kv_state_cache_test";
+char* program = "./build/bin/kv_state_cache_test";
 
 pid_t create_subprocess(char* argv[]) {
   pid_t pid = fork();
