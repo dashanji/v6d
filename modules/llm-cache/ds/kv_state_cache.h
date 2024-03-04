@@ -16,6 +16,7 @@ limitations under the License.
 #include <map>
 #include <memory>
 #include <vector>
+#include <utility>
 
 #include "client/client.h"
 #include "common/util/logging.h"
@@ -40,7 +41,7 @@ class KVStateCache : public vineyard::Registered<KVStateCache> {
  private:
   std::vector<std::shared_ptr<KVStateCacheBlock>> kvStateCacheBlockList;
   std::shared_ptr<RadixTree> rootTree;
-  int dimension;
+  int tensorBytes;
   int cacheCapacity;
   int layer;
   uint64_t version;
@@ -60,7 +61,7 @@ class KVStateCache : public vineyard::Registered<KVStateCache> {
     return this->kvStateCacheBlockList;
   }
 
-  int GetDimension() { return this->dimension; }
+  int GetTensorBytes() { return this->tensorBytes; }
 
   int GetCacheCapacity() { return this->cacheCapacity; }
 
@@ -77,12 +78,12 @@ class KVStateCache : public vineyard::Registered<KVStateCache> {
 
 class KVStateCacheBuilder : public vineyard::ObjectBuilder {
   std::shared_ptr<RadixTree> rootTree;
-  int dimension;
+  int tensorBytes;
   int layer;
   uint64_t version;
 
  public:
-  KVStateCacheBuilder(Client& client, int dimension, int cacheCapacity,
+  KVStateCacheBuilder(Client& client, int tensorBytes, int cacheCapacity,
                       int layer, int blockSize = DEFAULT_BLOCK_SIZE);
 
   KVStateCacheBuilder(Client& client, std::shared_ptr<KVStateCache> cache);
@@ -92,10 +93,11 @@ class KVStateCacheBuilder : public vineyard::ObjectBuilder {
       std::vector<std::shared_ptr<NodeData>> nodeDataList);
 
   void Update(Client& client, const std::vector<int>& token_list,
-              int next_token, const KV_STATE_WITH_LAYER& kv_state);
+              int next_token,
+              const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state);
 
   int Query(Client& client, const std::vector<int>& token_list, int token,
-            KV_STATE_WITH_LAYER& kv_state);
+            std::map<int, std::pair<K_STATE, V_STATE>>& kv_state);
 
   void Delete(std::shared_ptr<NodeData> evicted_node);
 
@@ -109,7 +111,7 @@ class KVStateCacheBuilder : public vineyard::ObjectBuilder {
 
   std::shared_ptr<Object> _Seal(Client& client) override;
 
-  uint64_t GetDimension() { return this->dimension; }
+  uint64_t GetTensorBytes() { return this->tensorBytes; }
 
   std::shared_ptr<RadixTree> GetRootTree() { return this->rootTree; }
 

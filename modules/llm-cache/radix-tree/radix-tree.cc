@@ -101,7 +101,7 @@ std::shared_ptr<NodeData> RadixTree::InsertInternal(
       this->tree, insertTokensArray, insertTokensArrayLen, dummyData,
       reinterpret_cast<void**>(&dataNode), reinterpret_cast<void**>(&oldData));
   if (dataNode == NULL) {
-    throw std::runtime_error("Insert token list failed");
+    LOG(ERROR) << "Insert token list failed";
     return NULL;
   }
   if (retval == 1) {
