@@ -18,8 +18,8 @@ limitations under the License.
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "llm-cache/ds/kv_state_cache.h"
 

@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <map>
 #include <memory>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "client/client.h"
 #include "common/util/logging.h"
