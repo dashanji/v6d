@@ -131,10 +131,10 @@ KVStateCacheBlockBuilder::KVStateCacheBlockBuilder(
 // current we do not consider the layer.
 int KVStateCacheBlockBuilder::Query(
     Client& client, int index,
-    std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
-    K_STATE keyState = (kvState.find(currentLayer)->second).first;
-    V_STATE valueState = (kvState.find(currentLayer)->second).second;
+    LLMKV keyState = (kvState.find(currentLayer)->second).first;
+    LLMKV valueState = (kvState.find(currentLayer)->second).second;
     keyState.data = keyStateTensorBuilderList[currentLayer]->data() + index;
     keyState.length = tensorBytes;
     valueState.data = valueStateTensorBuilderList[currentLayer]->data() + index;
@@ -166,12 +166,12 @@ bool KVStateCacheBlockBuilder::IsFull() {
 }
 
 void KVStateCacheBlockBuilder::Update(
-    const std::map<int, std::pair<K_STATE, V_STATE>>& kvState,
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState,
     OffsetData* data) {
   int index = this->FindEmptySlot();
   for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
-    K_STATE keyState = (kvState.find(currentLayer)->second).first;
-    V_STATE valueState = (kvState.find(currentLayer)->second).second;
+    LLMKV keyState = (kvState.find(currentLayer)->second).first;
+    LLMKV valueState = (kvState.find(currentLayer)->second).second;
     VINEYARD_ASSERT(keyState.length == (size_t) this->tensorBytes);
     VINEYARD_ASSERT(valueState.length == (size_t) this->tensorBytes);
 

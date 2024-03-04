@@ -94,10 +94,10 @@ class KVStateCacheBuilder : public vineyard::ObjectBuilder {
 
   void Update(Client& client, const std::vector<int>& token_list,
               int next_token,
-              const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state);
+              const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state);
 
   int Query(Client& client, const std::vector<int>& token_list, int token,
-            std::map<int, std::pair<K_STATE, V_STATE>>& kv_state);
+            std::map<int, std::pair<LLMKV, LLMKV>>& kv_state);
 
   void Delete(std::shared_ptr<NodeData> evicted_node);
 

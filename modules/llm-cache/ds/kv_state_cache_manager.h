@@ -48,28 +48,28 @@ class KVStateCacheManager {
       std::string socket = std::string(getenv("VINEYARD_IPC_SOCKET")));
 
   void Update(const std::vector<int>& tokenList, int nextToken,
-              const std::map<int, std::pair<K_STATE, V_STATE>>& kvState);
+              const std::map<int, std::pair<LLMKV, LLMKV>>& kvState);
 
   void Update(
       const std::vector<int>& tokenList,
-      const std::vector<std::map<int, std::pair<K_STATE, V_STATE>>>& kvState);
+      const std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>& kvState);
 
   int Query(const std::vector<int>& tokenList, int token,
-            std::map<int, std::pair<K_STATE, V_STATE>>& kvState);
+            std::map<int, std::pair<LLMKV, LLMKV>>& kvState);
 
   int Query(
       const std::vector<int>& tokenList,
-      std::vector<std::map<int, std::pair<K_STATE, V_STATE>>>& listKVState);
+      std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>& listKVState);
 
   ~KVStateCacheManager();
 
  private:
   void UpdateInternal(
       const std::vector<int>& tokenList, int nextToken,
-      const std::map<int, std::pair<K_STATE, V_STATE>>& kvState);
+      const std::map<int, std::pair<LLMKV, LLMKV>>& kvState);
 
   int QueryInternal(const std::vector<int>& tokenList, int token,
-                    std::map<int, std::pair<K_STATE, V_STATE>>& kvState);
+                    std::map<int, std::pair<LLMKV, LLMKV>>& kvState);
 
   void Delete(std::vector<int> token);
 

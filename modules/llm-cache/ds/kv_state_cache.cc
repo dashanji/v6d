@@ -140,7 +140,7 @@ KVStateCacheBlockBuilder* KVStateCacheBuilder::Split(
 
 void KVStateCacheBuilder::Update(
     Client& client, const std::vector<int>& tokenList, int nextToken,
-    const std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   std::vector<int> tokenListCopy = tokenList;
   tokenListCopy.push_back(nextToken);
 
@@ -200,7 +200,7 @@ void KVStateCacheBuilder::Update(
 
 int KVStateCacheBuilder::Query(
     Client& client, const std::vector<int>& tokenList, int token,
-    std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   std::vector<int> tokenListCopy = tokenList;
   tokenListCopy.push_back(token);
 
@@ -274,10 +274,10 @@ void KVStateCacheBuilder::Merge(Client& client,
   for (auto it = insertTokenList.begin(); it != insertTokenList.end(); ++it) {
     std::vector<int> tokenList =
         std::vector<int>((*it).begin(), (*it).end() - 1);
-    std::map<int, std::pair<K_STATE, V_STATE>> kvState;
+    std::map<int, std::pair<LLMKV, LLMKV>> kvState;
     for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
-      K_STATE key_state;
-      V_STATE value_state;
+      LLMKV key_state;
+      LLMKV value_state;
       key_state.data = malloc(this->tensorBytes);
       key_state.length = this->tensorBytes;
       value_state.data = malloc(this->tensorBytes);
@@ -289,8 +289,8 @@ void KVStateCacheBuilder::Merge(Client& client,
     globalCacheBuilder->Query(client, tokenList, (*it).back(), kvState);
     this->Update(client, tokenList, (*it).back(), kvState);
     for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
-      K_STATE key_state = kvState[currentLayer].first;
-      V_STATE value_state = kvState[currentLayer].second;
+      LLMKV key_state = kvState[currentLayer].first;
+      LLMKV value_state = kvState[currentLayer].second;
       free(key_state.data);
       free(value_state.data);
     }

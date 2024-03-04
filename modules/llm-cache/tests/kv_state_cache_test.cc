@@ -58,7 +58,7 @@ void print_current_tokens(const std::vector<int>& prefix, int next_token) {
 }
 
 void print_kv_state(
-    const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state) {
   LOG(INFO) << "kv_state: ";
   for (auto iter = kv_state.begin(); iter != kv_state.end(); ++iter) {
     uint8_t* key_state_data =
@@ -80,11 +80,11 @@ void print_kv_state(
 }
 
 // we do not consider the layer.
-std::map<int, std::pair<K_STATE, V_STATE>> generate_kv_state(int token) {
-  std::map<int, std::pair<K_STATE, V_STATE>> kv_state;
+std::map<int, std::pair<LLMKV, LLMKV>> generate_kv_state(int token) {
+  std::map<int, std::pair<LLMKV, LLMKV>> kv_state;
   for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
-    K_STATE key_state;
-    V_STATE value_state;
+    LLMKV key_state;
+    LLMKV value_state;
     key_state.data = malloc(tensorBytes);
     value_state.data = malloc(tensorBytes);
 
@@ -105,7 +105,7 @@ std::map<int, std::pair<K_STATE, V_STATE>> generate_kv_state(int token) {
   return kv_state;
 }
 
-void check_kv_state(const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state,
+void check_kv_state(const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state,
                     int& token) {
   VINEYARD_ASSERT(kv_state.size() == (size_t) layer);
   for (auto iter = kv_state.begin(); iter != kv_state.end(); ++iter) {
@@ -142,7 +142,7 @@ void check_kv_state(const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state,
 
 void inference(std::vector<int> tokens, bool block = false) {
   std::vector<int> inference_tokens;
-  std::map<int, std::pair<K_STATE, V_STATE>> kv_state;
+  std::map<int, std::pair<LLMKV, LLMKV>> kv_state;
   for (size_t i = 0; i < tokens.size(); ++i) {
     kv_state.clear();
     int result =

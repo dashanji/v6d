@@ -77,19 +77,19 @@ KVStateCacheManager::KVStateCacheManager(int tensorBytes, int cacheCapacity,
 
 void KVStateCacheManager::UpdateInternal(
     const std::vector<int>& tokenList, int nextToken,
-    const std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   kvStateCacheBuilder->Update(client, tokenList, nextToken, kvState);
 }
 
 int KVStateCacheManager::QueryInternal(
     const std::vector<int>& tokenList, int token,
-    std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   return kvStateCacheBuilder->Query(client, tokenList, token, kvState);
 }
 
 void KVStateCacheManager::Update(
     const std::vector<int>& tokenList, int nextToken,
-    const std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   if (!syncMutex.try_lock()) {
     return;
   }
@@ -101,7 +101,7 @@ void KVStateCacheManager::Update(
 
 void KVStateCacheManager::Update(
     const std::vector<int>& tokenList,
-    const std::vector<std::map<int, std::pair<K_STATE, V_STATE>>>& kvState) {
+    const std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>& kvState) {
   if (!syncMutex.try_lock()) {
     return;
   }
@@ -117,7 +117,7 @@ void KVStateCacheManager::Update(
 
 int KVStateCacheManager::Query(
     const std::vector<int>& tokenList, int token,
-    std::map<int, std::pair<K_STATE, V_STATE>>& kvState) {
+    std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
   int result = -1;
 
   if (!syncMutex.try_lock()) {
@@ -132,7 +132,7 @@ int KVStateCacheManager::Query(
 
 int KVStateCacheManager::Query(
     const std::vector<int>& tokenList,
-    std::vector<std::map<int, std::pair<K_STATE, V_STATE>>>& listKVState) {
+    std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>& listKVState) {
   int result = -1;
   if (!syncMutex.try_lock()) {
     return result;

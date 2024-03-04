@@ -29,13 +29,10 @@ limitations under the License.
 #include "client/ds/i_object.h"
 #include "llm-cache/radix-tree/radix-tree.h"
 
-struct State {
+struct LLMKV {
   void* data;
   size_t length;
 };
-
-using K_STATE = State;
-using V_STATE = State;
 
 // Set the bit to 1, which means the resource is not being used
 #define FREE_BIT_RESOURCE(value, bit) ((value) |= (((uint64_t) 1) << (bit)))
@@ -142,7 +139,7 @@ class KVStateCacheBlockBuilder : public ObjectBuilder {
    * @param kv_state The kv-state of the prompt. A LLM inference can contain
    * multiple kv-states for each layer.
    */
-  void Update(const std::map<int, std::pair<K_STATE, V_STATE>>& kv_state,
+  void Update(const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state,
               OffsetData* data);
 
   void Update(char* keyState, char* valueState, uint64_t dataLength,
@@ -157,7 +154,7 @@ class KVStateCacheBlockBuilder : public ObjectBuilder {
    * kv-state is not found, the data of kv-state is invalid.
    */
   int Query(Client& client, int index,
-            std::map<int, std::pair<K_STATE, V_STATE>>& kv_state);
+            std::map<int, std::pair<LLMKV, LLMKV>>& kv_state);
 
   bool IsFull();
 
