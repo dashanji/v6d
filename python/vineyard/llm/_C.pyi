@@ -31,28 +31,9 @@ KVState = Tuple[List[float], List[float]]
 KVStateWithLayer = Dict[int, KVState]
 ListKVStateWithLayer = List[KVStateWithLayer]
 
-class KVStateCache:
-    def __init__(
-        self,
-        dimension: int = 10,
-        cacheCapacity: int = 10,
-        layer: int = 10,
-        blockSize: int = 5,
-    ) -> None: ...
-    @property
-    def update(
-        self,
-        tokenList: List[int] = None,
-        nextToken: int = None,
-        kvState: KVStateWithLayer = None,
-    ) -> None: ...
+class KVStateCacheManager:
+    def __init__(self, client: Client, builder: Any, num_partitions: int, prefix: str, suffix: str):
+        pass
 
-class KVStateCacheBuilder:
-    def __init__(
-        self,
-        client: Client = None,
-        dimension: int = 10,
-        cacheCapacity: int = 10,
-        layer: int = 10,
-        blockSize: int = 5,
-    ) -> None: ...
+    def Make(self, key: Union[int, str], value: Union[float, List[float], KVState, KVStateWithLayer, ListKVStateWithLayer]):
+        pass

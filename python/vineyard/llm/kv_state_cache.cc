@@ -17,14 +17,19 @@ limitations under the License.
 #include "pybind11/stl.h"
 
 #include "client/client.h"
-#include "client/ds/blob.h"
-#include "client/ds/i_object.h"
-#include "client/ds/object_meta.h"
-#include "common/util/env.h"
-#include "common/util/status.h"
 
-#include "modules/llm-cache/ds/kv_state_cache_manager.h"
+#include "llm-cache/ds/kv_state_cache_manager.h"
 
-PYBIND11_MODULE(vineyard-llm, m) {
+namespace py = pybind11;
+
+namespace vineyard {
+
+PYBIND11_MODULE(_C, m) {
     m.doc() = "vineyard llm kv cache manager module";
-}
+    
+    py::class_<KVStateCacheManager>(m, "KVStateCacheManager")
+        .def(py::init<vineyard::Client&, std::shared_ptr<vineyard::KVStateCacheBuilder>&, int, std::string&, std::string&>())
+        .def("Make", &vineyard::KVStateCacheManager::Make);
+};
+
+}  // namespace vineyard

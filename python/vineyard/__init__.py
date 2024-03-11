@@ -212,9 +212,10 @@ def _init_vineyard_modules():  # noqa: C901
     * {sys.prefix}/share/vineyard/02-xxxx.py
     * $HOME/.vineyard/03-xxxxx.py
 
-    Then import packages like vineyard.drivers.*:
+    Then import packages like vineyard.drivers.*
 
     * vineyard.drivers.io
+    
     """
 
     import glob

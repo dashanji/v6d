@@ -15,3 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+#from ._C import KVStateCacheManager
+
+from .query import query
+
+def init():
+    pass

@@ -51,7 +51,7 @@ class install_plat(install):
 def find_llm_packages(root):
     pkgs = []
     for pkg in find_packages(root):
-        if 'contrib.llm' in pkg:
+        if 'llm' in pkg:
             pkgs.append(pkg)
     return pkgs
 
@@ -88,9 +88,9 @@ setup(
     url='https://v6d.io',
     package_dir={'vineyard.llm': 'python/vineyard/llm'},
     packages=find_llm_packages('python'),
-    ext_modules=[
-        CopyCMakeExtension('vineyard.llm._C'),
-    ],
+    #ext_modules=[
+    #    CopyCMakeExtension('vineyard.llm._C'),
+    #],
     cmdclass={'bdist_wheel': bdist_wheel_plat, "install": install_plat},
     zip_safe=False,
     install_requires=['vineyard'],
