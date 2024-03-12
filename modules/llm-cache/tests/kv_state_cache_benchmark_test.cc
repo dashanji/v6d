@@ -38,19 +38,24 @@ Client client;
 void init(std::string socket) {
   VINEYARD_CHECK_OK(client.Connect(socket));
   VINEYARD_CHECK_OK(KVStateCacheManager::Make(client, manager, TENSORBYTES,
-                                              CAPACITY, LAYER, BLOCK_SIZE, 3));
+                                              CAPACITY, LAYER, BLOCK_SIZE, 300));
 }
 
-std::vector<int> generate_random_tokens(size_t max_length) {
+std::vector<int> generate_unique_tokens(size_t max_length) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dist(1, 10000);
 
+  std::unordered_set<int> unique_tokens;
+
   size_t length = dist(gen) % max_length + 1;
-  std::vector<int> tokens(length);
-  for (size_t i = 0; i < length; ++i) {
-    tokens[i] = dist(gen);
+
+  while (unique_tokens.size() < length) {
+    int token = dist(gen);
+    unique_tokens.insert(token);
   }
+
+  std::vector<int> tokens(unique_tokens.begin(), unique_tokens.end());
   return tokens;
 }
 
@@ -81,20 +86,15 @@ void benchmark_inference(std::vector<std::vector<int>>& tokens) {
   std::chrono::duration<double> query_duration(0);
   double total_update_duration = 0;
   double total_query_duration = 0;
-
+  std::vector<int> inference_tokens;
+  std::map<int, std::pair<LLMKV, LLMKV>> kv_state_list;
+  void *key_state = malloc(TENSORBYTES);
+  void *value_state = malloc(TENSORBYTES);
+  // update time
   for (size_t i = 0; i < tokens.size(); ++i) {
-    std::vector<int> inference_tokens;
+    inference_tokens.clear();
     for (size_t j = 0; j < tokens[i].size(); ++j) {
-      start = std::chrono::steady_clock::now();
-      kv_state = generate_kv_state(tokens[i][j]);
-      Status status = manager->Query(inference_tokens, tokens[i][j], kv_state);
-      if (!status.ok()) {
-        VLOG(100) << "KV state is not in the cache.";
-      }
-      end = std::chrono::steady_clock::now();
-      query_duration += end - start;
-
-      if (kv_state.size() == 0) {
+        kv_state = generate_kv_state(tokens[i][j]);
         start = std::chrono::steady_clock::now();
         Status status =
             manager->Update(inference_tokens, tokens[i][j], kv_state);
@@ -104,11 +104,32 @@ void benchmark_inference(std::vector<std::vector<int>>& tokens) {
         }
         end = std::chrono::steady_clock::now();
         update_duration += end - start;
-      }
-      inference_tokens.push_back(tokens[i][j]);
-      token_list_size++;
+        inference_tokens.push_back(tokens[i][j]);
+        token_list_size++;
     }
     total_update_duration += update_duration.count();
+  }
+
+  // query time
+  for (size_t i = 0; i < tokens.size(); ++i) {
+    inference_tokens.clear();
+    kv_state_list.clear();
+    for (size_t j = 0; j < tokens[i].size(); ++j) {
+      start = std::chrono::steady_clock::now();
+      Status status = manager->Query(inference_tokens, tokens[i][j], kv_state_list);
+      if (!status.ok()) {
+        VLOG(100) << "KV state is not in the cache.";
+      }
+      for (auto& kv : kv_state_list) {
+        for (int currentLayer = 0; currentLayer < LAYER; currentLayer++) {
+          memcpy(key_state, kv.second.first.data, kv.second.first.length);
+          memcpy(value_state, kv.second.second.data, kv.second.second.length);
+        }
+      }
+      end = std::chrono::steady_clock::now();
+      query_duration += end - start;
+      inference_tokens.push_back(tokens[i][j]);
+    }
     total_query_duration += query_duration.count();
   }
 
@@ -152,7 +173,7 @@ int main(int argc, char** argv) {
     const size_t num_lists = 10;
     std::vector<std::vector<int>> all_token_lists;
     for (size_t i = 0; i < num_lists; ++i) {
-      all_token_lists.push_back(generate_random_tokens(2000));
+      all_token_lists.push_back(generate_unique_tokens(2000));
     }
 
     benchmark_inference(all_token_lists);
