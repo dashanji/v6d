@@ -103,7 +103,7 @@ class KVStateCacheBuilder : public vineyard::ObjectBuilder {
                KVStateCacheBlockBuilder*& childKVStateCacheBlockBuilder);
 
   Status Update(const std::vector<int>& token_list, int next_token,
-                const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state);
+                const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state, double &time);
 
   Status Query(const std::vector<int>& token_list, int token,
                std::map<int, std::pair<LLMKV, LLMKV>>& kv_state);

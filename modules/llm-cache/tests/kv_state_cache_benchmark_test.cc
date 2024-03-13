@@ -28,7 +28,7 @@ limitations under the License.
 using namespace vineyard;  //  NOLINT(build/namespaces)
 
 constexpr int TENSORBYTES = 800;
-constexpr int CAPACITY = 1000;
+constexpr int CAPACITY = 20000;
 constexpr int LAYER = 64;
 constexpr int BLOCK_SIZE = 100;
 
@@ -88,6 +88,7 @@ void benchmark_inference(std::vector<std::vector<int>>& tokens) {
   double total_query_duration = 0;
   std::vector<int> inference_tokens;
   std::map<int, std::pair<LLMKV, LLMKV>> kv_state_list;
+  double time = 0;
   void *key_state = malloc(TENSORBYTES);
   void *value_state = malloc(TENSORBYTES);
   // update time
@@ -97,7 +98,7 @@ void benchmark_inference(std::vector<std::vector<int>>& tokens) {
         kv_state = generate_kv_state(tokens[i][j]);
         start = std::chrono::steady_clock::now();
         Status status =
-            manager->Update(inference_tokens, tokens[i][j], kv_state);
+            manager->Update(inference_tokens, tokens[i][j], kv_state, time);
         if (!status.ok()) {
           // Not a error. May be the cache is full.
           VLOG(100) << "Put kv state into cache failed.";
@@ -135,6 +136,7 @@ void benchmark_inference(std::vector<std::vector<int>>& tokens) {
 
   LOG(INFO) << "Token list size is " << token_list_size
             << "Total Update time is " << total_update_duration << "s "
+            << "Update Memcpy time is " << time << "s "
             << "Total Query time is " << total_query_duration << "s "
             << "Average update time is "
             << token_list_size / total_update_duration << "token/s "

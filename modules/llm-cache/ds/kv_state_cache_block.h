@@ -142,7 +142,7 @@ class KVStateCacheBlockBuilder : public ObjectBuilder {
    * multiple kv-states for each layer.
    */
   Status Update(const std::map<int, std::pair<LLMKV, LLMKV>>& kv_state,
-                OffsetData* data);
+                OffsetData* data, double &time);
 
   /**
    * @brief Query the kv-state using the whole token list.

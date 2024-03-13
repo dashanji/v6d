@@ -157,7 +157,7 @@ Status KVStateCacheBuilder::Split(
 
 Status KVStateCacheBuilder::Update(
     const std::vector<int>& tokenList, int nextToken,
-    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState, double& time) {
   std::vector<int> tokenListCopy = tokenList;
   tokenListCopy.push_back(nextToken);
 
@@ -205,14 +205,14 @@ Status KVStateCacheBuilder::Update(
     VLOG(100) << "block split success";
 
     // kv_state_cache_builder->UnLock();
-    status = Update(tokenList, nextToken, kvState);
+    status = Update(tokenList, nextToken, kvState, time);
     RETURN_ON_ERROR(status);
   } else {
     // Update the kv-state cache.
     OffsetData* data = new OffsetData();
     RETURN_ON_ASSERT(data != nullptr, "Not enough memory for new offset data.");
 
-    Status status = kvStateCacheBlockBuilder->Update(kvState, data);
+    Status status = kvStateCacheBlockBuilder->Update(kvState, data, time);
     RETURN_ON_ERROR(status);
     nodeData->nodeData->data = data;
     nodeData->nodeData->dataLength = sizeof(OffsetData);
@@ -312,9 +312,10 @@ Status KVStateCacheBuilder::Merge(std::shared_ptr<KVStateCache> kvStateCache) {
       kvState.insert(
           std::make_pair(currentLayer, std::make_pair(key_state, value_state)));
     }
+    double time = 0;
     Status status = globalCacheBuilder->Query(tokenList, (*it).back(), kvState);
     if (status.ok()) {
-      status = this->Update(tokenList, (*it).back(), kvState);
+      status = this->Update(tokenList, (*it).back(), kvState, time);
     }
     for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
       LLMKV key_state = kvState[currentLayer].first;

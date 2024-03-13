@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <utility>
@@ -170,11 +171,13 @@ bool KVStateCacheBlockBuilder::IsFull() {
 }
 
 Status KVStateCacheBlockBuilder::Update(
-    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState, OffsetData* data) {
+    const std::map<int, std::pair<LLMKV, LLMKV>>& kvState, OffsetData* data,
+    double &time) {
   int index = this->FindEmptySlot();
   RETURN_ON_ASSERT((index >= 0 && index < this->blockSize),
                    "Index out of range: " + std::to_string(index));
-
+  std::chrono::steady_clock::time_point start, end;
+  start = std::chrono::steady_clock::now();
   for (int currentLayer = 0; currentLayer < this->layer; currentLayer++) {
     LLMKV keyState = (kvState.find(currentLayer)->second).first;
     LLMKV valueState = (kvState.find(currentLayer)->second).second;
@@ -189,7 +192,8 @@ Status KVStateCacheBlockBuilder::Update(
            this->tensorBytes);
   }
   data->offset = index;
-
+  end = std::chrono::steady_clock::now();
+  time += std::chrono::duration<double>(end - start).count();
   ACQUIRE_BIT_RESOURCE(this->bitmap[index / 64], index % 64);
   return Status::OK();
 }
