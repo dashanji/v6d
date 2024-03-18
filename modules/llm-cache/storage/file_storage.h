@@ -17,10 +17,38 @@ limitations under the License.
 #define MODULES_LLM_CACHE_STORAGE_FILE_STORAGE_H_
 
 #include "llm-cache/storage/storage.h"
+#include "MurmurHash3/Murmurhash3.h"
 
 namespace vineyard {
 
-class FileStorage : public IStorage {};
+class FileStorage : public IStorage {
+ public:
+  FileStorage(int chunkSize);
+  ~FileStorage();
+
+  Status Update(const std::vector<int>& tokenList, int nextToken,
+                const std::map<int, std::pair<LLMKV, LLMKV>>& kvState) override;
+
+  Status Update(const std::vector<int>& tokenList,
+                const std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>&
+                    kvStateList) override;
+
+  Status Query(const std::vector<int>& tokenList, int token,
+               std::map<int, std::pair<LLMKV, LLMKV>>& kvState) override;
+
+  Status Query(const std::vector<int>& tokenList,
+               std::vector<std::map<int, std::pair<LLMKV, LLMKV>>>& kvStateList)
+      override;
+
+  void Close() override;
+
+  private:
+    // Store the kv state in a file with chunkSize
+    int chunkSize;
+    // split the hash value into directory with splitNumber
+    // e.g. splitNumber = 2, hash value = 1ae45b78, then the file path is 1a/e4/5b/78
+    int splitNumber;
+};
 
 }  // namespace vineyard
 #endif  // MODULES_LLM_CACHE_STORAGE_FILE_STORAGE_H_
