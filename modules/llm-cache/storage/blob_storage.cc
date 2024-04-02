@@ -121,7 +121,7 @@ Status BlobStorage::QueryInternal(
  * @param nextToken The next token to be updated.
  * @param kvState The kv state of the token. The length of the kv state should
  *                be as same as the layer of the kv state cache manager.
- *
+ * 
  *           *****************************************************************
  *           * Important, the kv state must be initialized(pre-allocated)    *
  *           * and released by the caller.                                   *
@@ -138,14 +138,14 @@ Status BlobStorage::QueryInternal(
  *           *   // Copy the v_state of LLM KV Cache to value_state.data     *
  *           *   key_state.length = tensorBytes;                             *
  *           *   value_state.length = tensorBytes;                           *
- *           *   kvState.emplace_back(key_state, value_state);               *
+ *           *   kvState.push_back(std::make_pair(key_state, value_state));  *
  *           *}                                                              *
  *           *                                                               *
  *           * After calling this function, you must release(free) the       *
- *           * key_state buffer manually.                                    *
+ *           * key_state buffer.                                             *
  *           *                                                               *
  *           *****************************************************************
- *
+ * 
  * @return Status
  */
 Status BlobStorage::Update(
@@ -177,8 +177,8 @@ Status BlobStorage::Update(
  *                    data and length. The data is the pointer to the tensor
  *                    , and the length is the size of the tensor.
  * @param updated It's a return value to indicate the number of tokens that have
- *                been updated successfully.
- *
+ * been updated successfully.
+ * 
  *           *****************************************************************
  *           * Important, the kv state List must be                          *
  *           * initialized(pre-allocated) and released by the caller.        *
@@ -188,7 +188,7 @@ Status BlobStorage::Update(
  *           * std::vector<std::vector<std::pair<LLMKV, LLMKV>>> kvStateList;*
  *           * for (int i = 0; i < 2; i++) {                                 *
  *           *   std::vector<std::pair<LLMKV, LLMKV>> kvState;               *
- *           *   for (int j = 0; j < 2; j++) {                               *
+ *           *     for (int j = 0; j < 2; j++) {                             *
  *           *     LLMKV key_state;                                          *
  *           *     LLMKV value_state;                                        *
  *           *     key_state.data = malloc(tensorBytes);                     *
@@ -199,14 +199,14 @@ Status BlobStorage::Update(
  *           *     value_state.length = tensorBytes;                         *
  *           *     kvState.emplace_back(key_state, value_state);             *
  *           *   }                                                           *
- *           *   kvStateList.push_back(kvState);                             *
+ *           *   kvStateList.push_back(kvStateLayer);                        *
  *           *}                                                              *
  *           *                                                               *
  *           * After calling this function, you must release(free) the       *
- *           * kv buffer of the kvStateList manually                         *
+ *           * kv buffer of the kvStateList                                  *
  *           *                                                               *
  *           *****************************************************************
- *
+ * 
  *
  * @note The length of the token list should be as same as the length of the
  * kvStateList. and the second dimension of the kvStateList should be as same as
@@ -250,8 +250,8 @@ Status BlobStorage::Update(
  *                    The kv state is a pair of LLMKV, the first is the K tensor
  *                    and the second is the V tensor. It contains two fields:
  *                    data and length. The data is the pointer to the tensor
- *                    , and the length is the size of the tensor.
- *
+ * data, and the length is the size of the tensor data.
+ * 
  *           *****************************************************************
  *           * Important, the kv state List must be                          *
  *           * initialized(pre-allocated) and released by the caller.        *
@@ -261,7 +261,7 @@ Status BlobStorage::Update(
  *           * std::vector<std::vector<std::pair<LLMKV, LLMKV>>> kvStateList;*
  *           * for (int i = 0; i < 2; i++) {                                 *
  *           *   std::vector<std::pair<LLMKV, LLMKV>> kvState;               *
- *           *   for (int j = 0; j < 2; j++) {                               *
+ *           *     for (int j = 0; j < 2; j++) {                             *
  *           *     LLMKV key_state;                                          *
  *           *     LLMKV value_state;                                        *
  *           *     key_state.data = malloc(tensorBytes);                     *
@@ -272,14 +272,14 @@ Status BlobStorage::Update(
  *           *     value_state.length = tensorBytes;                         *
  *           *     kvState.emplace_back(key_state, value_state);             *
  *           *   }                                                           *
- *           *   kvStateList.push_back(kvState);                             *
+ *           *   kvStateList.push_back(kvStateLayer);                        *
  *           *}                                                              *
  *           *                                                               *
  *           * After calling this function, you must release(free) the       *
  *           * kv buffer of the kvStateList                                  *
  *           *                                                               *
  *           *****************************************************************
- *
+ * 
  * @param updated It's a return value to indicate the number of tokens that have
  *                been updated successfully.
  *
@@ -316,14 +316,14 @@ Status BlobStorage::Update(
  * @param tokenList The token list as the prefix of the updated token.
  * @param token The token to be queried.
  * @param kvState The kv state of the token. It must be initialized(allocated)
- *                before calling this function, including the data and length
+ *                before calling this function, including the data and length 
  *                of the kv state. The length of the kv state should be as same
  *                as the layer of the kv state cache manager.
  *
  *           *****************************************************************
  *           * Important, the kv state is managed by the kv state cache      *
  *           * manager, the caller does not need to malloc and free the      *
- *           * memory of the kv state. Besides, the data pointer should be   *
+ *           * memory of the kv state. Otherwise, the data pointer should be *
  *           * nullptr and the length should be 0.                           *
  *           *                                                               *
  *           * Assume the layer is 2, you should allocate the memory for the *
@@ -336,16 +336,12 @@ Status BlobStorage::Update(
  *           *   value_state.data = nullptr                                  *
  *           *   key_state.length = 0;                                       *
  *           *   value_state.length = 0;                                     *
- *           *   kvState.emplace_back(key_state, value_state);               *
+ *           *   kvState.push_back(std::make_pair(key_state, value_state));  *
  *           *}                                                              *
  *           *                                                               *
- *           * After calling this function, the key_state's data is pointing *
- *           * to the K tensor data stored in vineyard blob, and the         *
- *           * value_state's data is pointing to the V tensor data stored in *
- *           * vineyard blob. All the length of the kv state is the size of  *
- *           * the tensor data. Then you can copy the kv state to the LLM KV *
- *           * Cache. The memory of the kv state will be freed when calling  *
- *           * the close function of the kv state cache manager.             *
+ *           * After calling this function, you can copy the kv state to the *
+ *           * LLM KV Cache. The memory of the kv state will be freed when   *
+ *           * calling the close function of the kv state cache manager.     *
  *           *                                                               *
  *           *****************************************************************
  *

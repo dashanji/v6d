@@ -114,10 +114,10 @@ PYBIND11_MODULE(llm_C, m) {
                     .cast<std::vector<std::vector<std::pair<LLMKV, LLMKV>>>>();
             size_t matched = 0;
             VINEYARD_CHECK_OK(self->Query(tokens, kv_state_vec, matched));
-            for (size_t i = 0; i < kv_state_vec.size() && i < matched; ++i) {
-              for (size_t j = 0; j < kv_state_vec[i].size(); ++j) {
-                kv_state_list[i].cast<py::list>()[j] =
-                    py::cast(kv_state_vec[i][j]);
+            for (size_t layer_idx = 0; layer_idx < kv_state_vec.size(); ++layer_idx) {
+              for (size_t token_idx = 0; token_idx < matched; ++token_idx) {
+                kv_state_list[layer_idx].cast<py::list>()[token_idx] =
+                    py::cast(kv_state_vec[layer_idx][token_idx]);
               }
             }
             return matched;

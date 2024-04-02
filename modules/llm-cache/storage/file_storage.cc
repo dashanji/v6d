@@ -153,11 +153,11 @@ Status FileStorage::Update(
     RETURN_ON_ERROR_WITH_PATH_INDEX(i, Write(fd, &tokenLength, sizeof(int)));
     RETURN_ON_ERROR_WITH_PATH_INDEX(
         i, Write(fd, tokenList.data(), tokenLength * sizeof(int)));
+    for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
     for (int currentTokenIndex = i * batchSize;
          currentTokenIndex < (i + 1) * batchSize; currentTokenIndex++) {
-      for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
-        const LLMKV& k = kvStateList[currentTokenIndex][currentLayer].first;
-        const LLMKV& v = kvStateList[currentTokenIndex][currentLayer].second;
+        const LLMKV& k = kvStateList[currentLayer][currentTokenIndex].first;
+        const LLMKV& v = kvStateList[currentLayer][currentTokenIndex].second;
         RETURN_ON_ERROR_WITH_PATH_INDEX(i, Write(fd, k.data, k.length));
         RETURN_ON_ERROR_WITH_PATH_INDEX(i, Write(fd, v.data, k.length));
       }
@@ -328,11 +328,11 @@ Status FileStorage::Update(
         i, Write(fd, totalTokenList.data(), tokenLength * sizeof(int)));
     size_t kvStatePos =
         (i * batchSize) < prefix.size() ? 0 : (i * batchSize) - prefix.size();
+    for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
     for (size_t currentTokenIndex = kvStatePos;
          currentTokenIndex < kvStatePos + batchSize; currentTokenIndex++) {
-      for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
-        const LLMKV& k = kvStateList[currentTokenIndex][currentLayer].first;
-        const LLMKV& v = kvStateList[currentTokenIndex][currentLayer].second;
+        const LLMKV& k = kvStateList[currentLayer][currentTokenIndex].first;
+        const LLMKV& v = kvStateList[currentLayer][currentTokenIndex].second;
         RETURN_ON_ERROR_WITH_PATH_INDEX(i, Write(fd, k.data, k.length));
         RETURN_ON_ERROR_WITH_PATH_INDEX(i, Write(fd, v.data, k.length));
       }
@@ -473,6 +473,26 @@ Status FileStorage::Query(
       VINEYARD_DISCARD(Close(fd));
       return std::pair(-1, Status::ObjectNotExists("token mismatch"));
     } else {
+      for (int currentLayer = 0; currentLayer < layer; currentLayer++) {
+        for (int j = 0; j < batchSize; j++) {
+            if (matched_start + j >= tokenList.size() || matched_start + j >= kvStateList[0].size()) {
+                break;
+            }
+            auto& kvStateForLayer = kvStateList[currentLayer];
+            auto& kvStateForToken = kvStateForLayer[matched_start + j];
+
+            LLMKV& k = kvStateForToken.first;
+            LLMKV& v = kvStateForToken.second;
+
+            RETURN_ON_ASSERT_WITH_PATH_INDEX(
+                i, k.length == tensorBytes && v.length == tensorBytes,
+                "The size of kv tensor doesn't match with the tensorBytes");
+
+            RETURN_ON_ERROR_WITH_PATH_INDEX(i, Read(fd, k.data, k.length));
+            RETURN_ON_ERROR_WITH_PATH_INDEX(i, Read(fd, v.data, v.length));
+        }
+    }
+      /*
       for (int j = 0; j < batchSize; j++) {
         if (matched_start + j >= tokenList.size() ||
             matched_start + j >= kvStateList.size()) {
@@ -492,6 +512,7 @@ Status FileStorage::Query(
           RETURN_ON_ERROR_WITH_PATH_INDEX(i, Read(fd, v.data, v.length));
         }
       }
+      */
     }
 
     VINEYARD_DISCARD(Close(fd));

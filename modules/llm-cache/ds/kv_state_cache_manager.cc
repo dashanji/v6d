@@ -142,8 +142,13 @@ Status KVStateCacheManager::Update(
     const std::vector<int>& tokenList,
     const std::vector<std::vector<std::pair<LLMKV, LLMKV>>>& kvStateList,
     size_t& updated) {
-  if (kvStateList.size() != tokenList.size()) {
-    return Status::Invalid("Token list size not match kv state list size");
+  if (kvStateList.size() != this->config->layer) {
+    return Status::Invalid("Layer size not match kv state list size");
+  }
+  for (size_t i = 0; i < kvStateList.size(); ++i) {
+    if (kvStateList[i].size() != tokenList.size()) {
+      return Status::Invalid("Token list size not match kv state list size");
+    }
   }
   return storage->Update(tokenList, kvStateList, updated);
 }
@@ -202,8 +207,13 @@ Status KVStateCacheManager::Update(
     const std::vector<int>& prefix, const std::vector<int>& tokenList,
     const std::vector<std::vector<std::pair<LLMKV, LLMKV>>>& kvStateList,
     size_t& updated) {
-  if (kvStateList.size() != tokenList.size()) {
-    return Status::Invalid("Token list size not match kv state list size");
+  if (kvStateList.size() != this->config->layer) {
+    return Status::Invalid("Layer size not match kv state list size");
+  }
+  for (size_t i = 0; i < kvStateList.size(); ++i) {
+    if (kvStateList[i].size() != tokenList.size()) {
+      return Status::Invalid("Token list size not match kv state list size");
+    }
   }
   return storage->Update(prefix, tokenList, kvStateList, updated);
 }
