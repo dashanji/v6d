@@ -40,10 +40,10 @@ env:
 jobs:
   ci:
     runs-on: ${{ matrix.os }}
-    if: ${{ github.repository == 'v6d-io/v6d' }}
     strategy:
       matrix:
         os: [ubuntu-20.04]
+        platform: [aarch64]
         metadata: [local, etcd, redis]  # disable redis for now as it seems has some nondeterministic bugs
         exclude:
           - metadata: local
@@ -82,6 +82,16 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.metadata }}-ccache-${{ hashFiles('**/git-modules.txt') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.metadata }}-ccache-
+
+      - name: Set up qemu
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Setup tmate session
+        if: true
+        uses: mxschmitt/action-tmate@v3
 
       - name: Install Dependencies for Linux
         if: runner.os == 'Linux'

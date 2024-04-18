@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -ex
 
 SOCKET_NAME="vineyard-worker.sock"
