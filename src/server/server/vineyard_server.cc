@@ -1034,6 +1034,7 @@ Status VineyardServer::MigrateObject(const ObjectID object_id,
 
           std::string remote_endpoint =
               (*instance)["rpc_endpoint"].get_ref<std::string const&>();
+          std::lock_guard<std::mutex> lock(self->migration_mutex_);
           // push to the async queues
           boost::asio::post(
               self->GetIOContext(),

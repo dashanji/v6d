@@ -20,6 +20,7 @@ limitations under the License.
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -273,6 +274,10 @@ class VineyardServer : public std::enable_shared_from_this<VineyardServer> {
   std::string instance_name_;
   std::string hostname_;
   std::string nodename_;
+
+  // Record the migration relationship (source -> target)
+  std::mutex migration_mutex_;
+  std::map<ObjectID, ObjectID> migrations_;
 };
 
 }  // namespace vineyard
