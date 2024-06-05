@@ -789,7 +789,7 @@ if(BUILD_VINEYARD_CLIENT)
     if(BUILD_VINEYARD_PYPI_PACKAGES)
         target_compile_options(vineyard_internal_registry PRIVATE -Os)
         target_add_link_options(vineyard_internal_registry PRIVATE OPTIONS -Os)
-        target_add_link_options(vineyard_internal_registry PRIVATE OPTIONS -Os)
+        target_add_link_options(vineyard_internal_registry PRIVATE OPTIONS -Os)    
     endif()
     install_export_vineyard_target(vineyard_internal_registry)
     target_add_link_options(vineyard_internal_registry PRIVATE
@@ -811,6 +811,8 @@ if(BUILD_VINEYARD_CLIENT)
     add_library(vineyard_client ${CLIENT_SRC_FILES})
     target_add_debuginfo(vineyard_client)
     target_link_libraries(vineyard_client PUBLIC ${CMAKE_DL_LIBS}
+                                                 # delete the following glog dependency once we don't use it in vineyard_client
+                                                 ${GLOG_LIBRARIES}
                                                  Threads::Threads
     )
     target_link_libraries(vineyard_client PRIVATE libzstd_static)
@@ -896,6 +898,9 @@ if(BUILD_VINEYARD_PYTHON_BINDINGS)
     else()
         target_compile_options(_C PRIVATE -Os)
         target_add_link_options(_C PRIVATE OPTIONS -Os)
+    endif()
+    if(BUILD_VINEYARD_RDMA)
+        target_compile_options(_C PRIVATE -DVINEYARD_WITH_RDMA)
     endif()
 
     file(RELATIVE_PATH RELATIVE_BUILD_PATH "${PROJECT_SOURCE_DIR}/python/vineyard" "${CMAKE_BINARY_DIR}/shared-lib")
