@@ -23,6 +23,8 @@ limitations under the License.
 #include <mutex>
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "common/util/asio.h"  // IWYU pragma: keep
@@ -275,9 +277,10 @@ class VineyardServer : public std::enable_shared_from_this<VineyardServer> {
   std::string hostname_;
   std::string nodename_;
 
-  // Record the migration relationship (source -> target)
   std::mutex migration_mutex_;
-  std::map<ObjectID, ObjectID> migrations_;
+  // Record the migration status of objects to avoid duplicated migration.
+  std::unordered_map<ObjectID, std::shared_future<std::pair<Status, ObjectID>>>
+      migrations_;
 };
 
 }  // namespace vineyard
