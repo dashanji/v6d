@@ -540,6 +540,7 @@ Status RPCClient::GetRemoteBlobs(
                        std::to_string(id_set.size()));
 
   std::unordered_map<ObjectID, std::shared_ptr<RemoteBlob>> id_payload_map;
+  auto start = std::chrono::system_clock::now();
   for (auto const& payload : payloads) {
     auto remote_blob = std::shared_ptr<RemoteBlob>(new RemoteBlob(
         payload.object_id, remote_instance_id_, payload.data_size));
@@ -553,6 +554,9 @@ Status RPCClient::GetRemoteBlobs(
     }
     id_payload_map[payload.object_id] = remote_blob;
   }
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  std::cout << "get remote blobs Elapsed time: " << elapsed_seconds.count() << "s\n";
   // clear the result container
   remote_blobs.clear();
   for (auto const& id : ids) {

@@ -93,6 +93,10 @@ void ReceiveRemoteBuffers(asio::generic::stream_protocol::socket& socket,
                           size_t index, size_t offset, const bool decompress,
                           callback_t<> callback_after_finish);
 
+void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket,
+                          std::vector<std::shared_ptr<Payload>> const& objects,
+                          bool decompress, callback_t<> callback_after_finish);
+
 }  // namespace vineyard
 
 #endif  // SRC_SERVER_UTIL_REMOTE_H_

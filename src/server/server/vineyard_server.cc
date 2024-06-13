@@ -1070,6 +1070,7 @@ Status VineyardServer::MigrateObject(const ObjectID object_id,
                     object_id, metadata,
                     [self, remote, callback, promise_ptr](
                         const Status& status, const ObjectID result) {
+                      std::cout << "before set value" << std::endl;
                       if (status.ok()) {
                         promise_ptr->set_value(
                             std::make_pair(Status::OK(), result));
@@ -1087,6 +1088,7 @@ Status VineyardServer::MigrateObject(const ObjectID object_id,
           return status;
         }
       });
+  std::cout << "server migrate object done" << std::endl;
   return Status::OK();
 }
 

@@ -1822,6 +1822,7 @@ void SocketConnection::doWrite(const std::string& buf) {
 void SocketConnection::doWrite(const std::string& buf, callback_t<> callback,
                                const bool partial) {
   std::string to_send;
+  std::cout << "buf.size()" << buf.size() << std::endl;
   size_t length = buf.size();
   to_send.resize(length + sizeof(size_t));
   char* ptr = &to_send[0];
@@ -1861,6 +1862,7 @@ void SocketConnection::doAsyncWrite(std::string&& buf, callback_t<> callback,
                                     const bool partial) {
   std::shared_ptr<std::string> payload =
       std::make_shared<std::string>(std::move(buf));
+  std::cout << "payload->length()" << payload->length() << std::endl;
   auto self(shared_from_this());
   asio::async_write(socket_,
                     boost::asio::buffer(payload->data(), payload->length()),

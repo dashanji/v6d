@@ -16,7 +16,9 @@ limitations under the License.
 #include "server/util/meta_tree.h"
 
 #include <fnmatch.h>
-
+#include <iostream>
+#include <chrono>
+#include <ctime>   
 #include <iostream>
 #include <map>
 #include <regex>
@@ -288,6 +290,11 @@ Status GetData(const json& tree, const std::string& instance_name,
                const std::string& name, json& sub_tree,
                InstanceID const& current_instance_id) {
   json tmp_tree;
+  // record current time
+
+  auto start = std::chrono::system_clock::now();
+
+  //std::cout << "called GetData" << start.time_since_epoch().count() << std::endl;
   sub_tree.clear();
   Status status = get_sub_tree(tree, "/data", name, tmp_tree);
   if (!status.ok()) {

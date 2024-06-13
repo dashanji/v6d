@@ -639,11 +639,12 @@ class Client:
 
         blobs = _traverse_blobs(meta)
 
+        
         cluster_info = self.default_client().meta
         meta.force_local()
         meta._client = None
-
-        with ThreadPoolExecutor() as executor:
+        """
+        with ThreadPoolExecutor(max_workers=1) as executor:
             futures = {
                 executor.submit(
                     self._fetch_blobs_from_instance,
@@ -660,7 +661,10 @@ class Client:
                 fetched_blobs = future.result()
                 for blob in fetched_blobs:
                     meta.add_remote_blob(blob)
-
+        """
+        fetch_blobs = self.get_remote_blobs(blobs[self.remote_instance_id])
+        for blob in fetch_blobs:
+            meta.add_remote_blob(blob)        
         return Object.from_(meta)
 
     def _fetch_blobs_from_instance(
