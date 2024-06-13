@@ -859,7 +859,7 @@ void bind_client(py::module& mod) {
             // Release GIL to avoid blocking the other threads
             // See also
             // https://pybind11.readthedocs.io/en/stable/advanced/misc.html#global-interpreter-lock-gil
-            //py::gil_scoped_release release;
+            py::gil_scoped_release release;
             std::vector<ObjectID> unwrapped_object_ids(object_ids.size());
             for (size_t idx = 0; idx < object_ids.size(); ++idx) {
               unwrapped_object_ids[idx] = object_ids[idx];
