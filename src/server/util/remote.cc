@@ -38,6 +38,7 @@ int read_chunk_until_calls = 0;
 double start_seconds = 2018267597931376974;
 double end_seconds = 0;
 double all_seconds = 0;
+double all_read_seconds = 0;
 
 RemoteClient::RemoteClient(const std::shared_ptr<VineyardServer> server_ptr)
     : server_ptr_(server_ptr),
@@ -290,6 +291,7 @@ Status RemoteClient::migrateBuffers(
       [self, callback, payloads, results](const Status& status) {
         std::cout << "in ReceiveRemoteBuffers callback" << std::endl;
         std::cout << "all cost time is:" << all_seconds << std::endl;
+        std::cout << "all read time is:" << all_read_seconds << std::endl;
         std::cout << "start_seconds is:" << std::fixed << std::setprecision(18) << start_seconds << std::endl;
         std::cout << "end_seconds is:" << end_seconds << std::endl;
         std::map<ObjectID, ObjectID> result_blobs;
@@ -687,9 +689,14 @@ static void read_chunk_util1(asio::generic::stream_protocol::socket& socket,
   asio::mutable_buffer buffer = asio::buffer(data, size);
   //std::cout << "socket handle is:"<< socket.native_handle() << "status:" << socket.is_open() << std::endl;
   // In our test, socket::async_receive outperforms asio::async_read.
-  socket.async_receive(buffer, [&socket, data, size, callback_after_finish](
+  auto start = std::chrono::system_clock::now();
+
+  socket.async_receive(buffer, [start, &socket, data, size, callback_after_finish](
                                    boost::system::error_code ec,
                                    std::size_t read_size) {
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    all_read_seconds += elapsed_seconds.count();
     if (ec) {
       //std::cout << "called ec: " << ec << std::endl;
       if (ec != asio::error::eof || read_size != size) {
@@ -736,7 +743,77 @@ Status precess_next_payload(asio::generic::stream_protocol::socket& socket, std:
     );
 }*/
 
+void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket, std::vector<std::shared_ptr<Payload>> const& objects, bool decompress, callback_t<> callback_after_finish) {
+    std::shared_ptr<Decompressor> decompressor;
+    if (decompress) {
+        decompressor = std::make_shared<Decompressor>();
+    }
+    boost::asio::ip::tcp::no_delay option(true);
+    boost::system::error_code ec;
+    socket.set_option(option, ec);
+    if (ec) {
+        std::cerr << "Failed to set socket options: " << ec.message() << std::endl;
+    }
 
+    struct State : public std::enable_shared_from_this<State> {
+        std::shared_ptr<Decompressor> decompressor;
+        std::vector<std::shared_ptr<Payload>> objects;
+        callback_t<> callback_after_finish;
+        std::chrono::system_clock::time_point start_time;
+        std::queue<std::pair<size_t, size_t>> pending_payloads;
+
+        State(const std::vector<std::shared_ptr<Payload>>& objs, callback_t<>&& cb, bool decompress)
+            : objects(objs), callback_after_finish(std::move(cb)) {
+            if (decompress) {
+                decompressor = std::make_shared<Decompressor>();
+            }
+            start_time = std::chrono::system_clock::now();
+            for (size_t i = 0; i < objs.size(); ++i) {
+                pending_payloads.emplace(i, 0);
+            }
+        }
+
+        void process_next(asio::generic::stream_protocol::socket& socket) {
+            if (pending_payloads.empty()) {
+                auto end_time = std::chrono::system_clock::now();
+                std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+                std::cout << "Total time taken: " << elapsed_seconds.count() << std::endl;
+                callback_after_finish(Status::OK());
+                return;
+            }
+
+            auto [index, offset] = pending_payloads.front();
+            pending_payloads.pop();
+
+            if (index >= objects.size()) {
+                callback_after_finish(Status::OK());
+                return;
+            }
+
+            const auto& object = objects[index];
+            if (!object || !object->pointer) {
+                callback_after_finish(Status::IOError("Object or pointer is null"));
+                return;
+            }
+
+            read_chunk_util1(socket, object->pointer + offset, object->data_size - offset,
+                [me = shared_from_this(), &socket](const Status& status) -> Status {
+                    if (!status.ok()) {
+                        me->callback_after_finish(status);
+                    } else {
+                        me->process_next(socket);
+                    }
+                    return status; // Ensure the lambda returns a Status
+                }
+            );
+        }
+    };
+
+    std::make_shared<State>(objects, std::move(callback_after_finish), decompress)->process_next(socket);
+}
+
+
+/*
 void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket, std::vector<std::shared_ptr<Payload>> const& objects, bool decompress, callback_t<> callback_after_finish) {
     std::shared_ptr<Decompressor> decompressor;
     if (decompress) {
@@ -806,58 +883,8 @@ void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket, std::
     // 开始处理第一个 payload
     (*process_next_payload)(Status::OK(), 0, 0);
 }
+*/
 
-
-/*
-void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket, std::vector<std::shared_ptr<Payload>> const& objects, bool decompress, callback_t<> callback_after_finish) {
-    std::shared_ptr<Decompressor> decompressor;
-    if (decompress) {
-        decompressor = std::make_shared<Decompressor>();
-    }
-
-    size_t index = 0;
-    size_t offset = 0;
-
-    std::function<Status(const Status&)> process_next_payload = [&, decompressor, callback_after_finish](const Status& status) mutable -> Status {
-        std::cout << "current index: " << index << " current offset: " << offset << std::endl;
-        if (!status.ok() || index >= objects.size()) {
-            return callback_after_finish(status);
-        }
-
-        // 检查当前对象是否可用
-        if (index < objects.size() && objects[index] != nullptr) {
-            if (offset == 0) {
-                offset = 0;
-                index++;
-            }
-        } else {
-            // 若对象数组已经处理完毕，返回成功状态
-            return callback_after_finish(Status::OK());
-        }
-
-        if (index >= objects.size()) {
-            return callback_after_finish(Status::OK());
-        }
-        std::cout << "before read_chunk_util1" << std::endl;
-        read_chunk_util1(
-            socket, objects[index]->pointer + offset, objects[index]->data_size - offset,
-            [decompressor, callback_after_finish, index, &offset, process_next_payload](const Status& status) mutable -> Status {
-                if (!status.ok()) {
-                    return process_next_payload(status);
-                }
-                offset = 0;
-                index++;
-                return process_next_payload(Status::OK());
-            }
-        );
-        std::cout << "after read_chunk_util1" << std::endl;
-
-        return Status::OK();
-    };
-
-    // 开始处理第一个 payload
-    process_next_payload(Status::OK());
-}*/
 
 void ReceiveRemoteBuffers(asio::generic::stream_protocol::socket& socket,
                           std::vector<std::shared_ptr<Payload>> const& objects,
