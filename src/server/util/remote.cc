@@ -748,12 +748,12 @@ void ReceiveRemoteBuffers1(asio::generic::stream_protocol::socket& socket, std::
     if (decompress) {
         decompressor = std::make_shared<Decompressor>();
     }
-    boost::asio::ip::tcp::no_delay option(true);
-    boost::system::error_code ec;
-    socket.set_option(option, ec);
-    if (ec) {
-        std::cerr << "Failed to set socket options: " << ec.message() << std::endl;
-    }
+    //boost::asio::ip::tcp::no_delay option(true);
+    //boost::system::error_code ec;
+    //socket.set_option(option, ec);
+    //if (ec) {
+    //    std::cerr << "Failed to set socket options: " << ec.message() << std::endl;
+    //}
 
     struct State : public std::enable_shared_from_this<State> {
         std::shared_ptr<Decompressor> decompressor;
