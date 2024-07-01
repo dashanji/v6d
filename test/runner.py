@@ -483,6 +483,8 @@ def run_vineyard_cpp_tests(meta, allocator, endpoints, tests):
 
 def run_vineyard_spill_tests(meta, allocator, endpoints, tests):
     meta_prefix = 'vineyard_test_%s' % time.time()
+    client_port = find_port()
+    endpoints = 'http://127.0.0.1:%d' % client_port
     metadata_settings = make_metadata_settings(meta, endpoints, meta_prefix)
     with start_vineyardd(
         metadata_settings,
