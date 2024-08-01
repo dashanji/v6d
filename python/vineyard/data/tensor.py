@@ -88,6 +88,7 @@ def numpy_ndarray_builder(client, value, **kw):
         meta['value_type_'] = value.dtype.name
         meta['value_type_meta_'] = value.dtype.str
         meta.add_member('buffer_', build_numpy_buffer(client, value))
+
     return client.create_metadata(meta)
 
 
@@ -120,10 +121,15 @@ def numpy_ndarray_resolver(obj):
         order = 'C'
     if np.prod(shape) == 0:
         return np.zeros(shape, dtype=value_type)
-    mem = memoryview(obj.member('buffer_'))[
-        0 : int(np.prod(shape)) * np.dtype(value_type).itemsize
-    ]
-    c_array = np.frombuffer(mem, dtype=value_type).reshape(shape)
+    try:
+        mem = memoryview(obj.member('buffer_'))[
+            0 : int(np.prod(shape)) * np.dtype(value_type).itemsize
+        ]
+        c_array = np.frombuffer(mem, dtype=value_type).reshape(shape)
+    except Exception as e:
+        with open('vineyard_meta', 'w', encoding='utf-8') as f:
+            f.write(str(meta))
+        raise e
     # TODO: revise the memory copy of asfortranarray
     array = c_array if order == 'C' else np.asfortranarray(c_array)
     return array.view(ndarray)

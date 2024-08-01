@@ -208,9 +208,9 @@ std::vector<json> Etcdctl::listHealthyMembers(
     if (member.find("clientURLs") == member.end()) {
       continue;
     }
-    if (checkMemberStatus(member["clientURLs"][0].get<std::string>())) {
-      healthy_members.emplace_back(member);
-    }
+    //if (checkMemberStatus(member["clientURLs"][0].get<std::string>())) {
+    healthy_members.emplace_back(member);
+    //}
   }
   return healthy_members;
 }

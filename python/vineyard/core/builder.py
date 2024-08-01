@@ -203,6 +203,14 @@ def put(
     else:
         r = meta  # None or ObjectID
 
+    import pickle
+    filename = r
+    with open(filename, 'w', encoding="utf-8") as f:
+        f.write(str(meta))
+        f.write("\n\n\n")
+        #dump the meta to the file
+    pickle.dump(value, filename)
+    
     if isinstance(r, ObjectID):
         if persist:
             client.persist(r)
