@@ -27,7 +27,7 @@ spec:
   vineyard:
     image: localhost:5001/vineyardd:latest
     imagePullPolicy: IfNotPresent
-    size: "2048"
+    size: "100Mi"
     # spill configuration
     spill:
       name: spill-path

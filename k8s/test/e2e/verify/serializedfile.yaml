@@ -14,6 +14,6 @@
 #
 
 {{- contains . }}
-- key: data
-  value: __elements_-0 __elements_-1 __elements_-2 __elements_-3 metadata.json
+- key: num
+  value: 100
 {{- end }}

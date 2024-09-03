@@ -52,18 +52,16 @@ verify:
           awk -F '/' '{print $2}' | \
           xargs kubectl logs -n vineyard-system | \
           grep Passed | \
-          awk -F ' ' '{print $5}' | \
           yq e '{"result": .}' - | \
           yq e 'to_entries' -
       expected: ../verify/spill.yaml
-    # test whether the spilled file exists
+    # test whether the num of spilled file is correct
     - query: |
         kubectl get pod -l app=spill-demo -n vineyard-system -oname | \
         awk -F '/' '{print $2}' | \
         head -n 1 | \
-        xargs -I{} kubectl exec {} -n vineyard-system -- ls /var/vineyard/spill | \
-        sort | \
-        tr '\n' ' ' | \
-        yq e '{"data": .}' - | \
+        xargs -I{} kubectl exec {} -n vineyard-system -- ls -l /var/vineyard/spill | \
+        wc -l | \
+        yq e '{"num": .}' - | \
         yq e 'to_entries' -
       expected: ../verify/spilledfile.yaml

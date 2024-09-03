@@ -37,8 +37,25 @@ spec:
       schedulerName: vineyard-scheduler
       containers:
       - name: spill-demo
-        image: ghcr.io/v6d-io/v6d/spill
-        command: ["spill_test", "/var/run/vineyard.sock"]
+        image: localhost:5001/vineyard-python-dev:latest
+        command:
+        - bash
+        - -c
+        - |
+          cat << EOF >> test.py
+          import vineyard
+          import numpy as np
+          client = vineyard.connect("/var/run/vineyard.sock")
+          # 10MB
+          data = np.ones(10000000)
+          for i in range(100):
+              obj_id = client.put(data)
+              client.release_object(obj_id)
+          client.close()
+          print("Passed")
+          EOF
+          python test.py;
+          sleep infinity;
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /var/run
