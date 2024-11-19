@@ -1213,12 +1213,12 @@ void IMetaService::instanceUpdate(const op_t& op, const bool from_remote) {
       if (member_id[0] == '\"' && member_id[member_id.size() - 1] == '\"') {
         member_id = member_id.substr(1, member_id.size() - 2);
       }
-      auto status = UpdateEtcdEndpoint();
-      if (!status.ok()) {
-        LOG(ERROR) << "Update etcd endpoint failed:" << status.ToString();
-      }
+      //auto status = UpdateEtcdEndpoint();
+      //if (!status.ok()) {
+      //  LOG(ERROR) << "Update etcd endpoint failed:" << status.ToString();
+      //}
       // reset the etcd client
-      VINEYARD_CHECK_OK(this->probe());
+      //VINEYARD_CHECK_OK(this->probe());
       uint64_t member_id_ = std::stoull(member_id);
       instance_to_member_id_[instance_id] = member_id_;
     } else if (op.op != op_t::op_type_t::kDel) {
