@@ -40,6 +40,10 @@
 
 #include "common/util/logging.h"  // IWYU pragma: keep
 
+#if defined(ENABLE_CUDA)
+#include <cuda_runtime.h>
+#endif
+
 namespace vineyard {
 
 namespace memory {
@@ -59,6 +63,8 @@ constexpr int64_t kMmapRegionsGap = sizeof(size_t);
 // environment, pre-populate will archive a win.
 DEFINE_bool(reserve_memory, false,
             "Reserving enough physical memory pages for vineyardd");
+
+DEFINE_bool(cuda_pin_memory, false, "Pin memory for CUDA");
 
 std::unordered_map<void*, MmapRecord> mmap_records;
 
@@ -264,6 +270,16 @@ void* mmap_buffer(int fd, int64_t size, bool gap, bool* is_committed,
   if (pointer == MAP_FAILED) {
     LOG(ERROR) << "mmap failed with error: " << strerror(errno);
     return pointer;
+  }
+
+  if (FLAGS_cuda_pin_memory) {
+#ifdef ENABLE_CUDA
+    cudaError_t status = cudaHostRegister(pointer, size, cudaHostRegisterDefault);
+    if (status != cudaSuccess) {
+      LOG(ERROR) << "cudaHostRegister failed with error: "
+                 << cudaGetErrorString(status);
+    }
+#endif
   }
 
   MmapRecord& record = mmap_records[pointer];
