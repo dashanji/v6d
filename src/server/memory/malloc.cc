@@ -274,6 +274,7 @@ void* mmap_buffer(int fd, int64_t size, bool gap, bool* is_committed,
 
   if (FLAGS_cuda_pin_memory) {
 #ifdef ENABLE_CUDA
+    LOG(INFO) << "pin memory for CUDA...";
     cudaError_t status = cudaHostRegister(pointer, size, cudaHostRegisterDefault);
     if (status != cudaSuccess) {
       LOG(ERROR) << "cudaHostRegister failed with error: "
@@ -304,6 +305,16 @@ int munmap_buffer(void* addr, int64_t size) {
     // Reject requests to munmap that don't directly match previous
     // calls to mmap, to prevent dlmalloc from trimming.
     return -1;
+  }
+
+  if (FLAGS_cuda_pin_memory) {
+#ifdef ENABLE_CUDA
+    cudaError_t status = cudaHostUnregister(addr);
+    if (status != cudaSuccess) {
+      LOG(ERROR) << "cudaHostUnregister failed with error: "
+                 << cudaGetErrorString(status);
+    }
+#endif
   }
 
   int r = munmap(addr, size);
