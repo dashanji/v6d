@@ -82,6 +82,7 @@ COPY setup.py /work/v6d/setup.py
 COPY setup_bdist.py /work/v6d/setup_bdist.py
 COPY setup_io.py /work/v6d/setup_io.py
 COPY setup_llm.py /work/v6d/setup_llm.py
+COPY setup_ml.py /work/v6d/setup_ml.py
 COPY requirements.txt /work/v6d/requirements.txt
 COPY requirements-dev.txt /work/v6d/requirements-dev.txt
 COPY requirements-extra.txt /work/v6d/requirements-extra.txt
@@ -116,15 +117,7 @@ RUN cd /work/v6d/build && \
     rm -rf dist build/lib* && \
     /opt/python/$python/bin/python setup_llm.py bdist_wheel && \
     mv /work/v6d/dist/*.whl /work/fixed_wheels/ && \
-    rm -rf /work/v6d
-
-# generate final image
-FROM python:3.10-slim-buster
-
-SHELL ["/bin/bash", "-l", "-c"]
-COPY --from=wheel /work/fixed_wheels/*.whl /tmp/
-
-RUN cd /tmp &&\
-    pip3 install --no-cache-dir *.whl ipython
-
-ENTRYPOINT ["/bin/bash", "-l", "-c" ]
+    cd /work/v6d && \
+    rm -rf dist build/lib* && \
+    /opt/python/$python/bin/python setup_ml.py bdist_wheel && \
+    mv /work/v6d/dist/*.whl /work/fixed_wheels/

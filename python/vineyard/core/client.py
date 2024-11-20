@@ -18,9 +18,11 @@
 
 import contextlib
 import os
+import time
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
+import threading
 from typing import Any
 from typing import Dict
 from typing import List
@@ -361,6 +363,44 @@ class Client:
             self._put_thread_pool = ThreadPoolExecutor(max_workers=self._max_workers)
         return self._put_thread_pool
 
+    def enable_gc_thread_for_spilled_objects(self, interval: int = 60):
+        """Enable a garbage collection thread to delete spilled objects and
+            their names.
+
+        Args:
+            interval: The interval in seconds to run the garbage collection.
+        """
+        def gc_loop():
+            while True:
+                # 获取所有对象名称
+                names = self.default_client().list_names(pattern="*", limit=1000000)
+                object_ids = [object_id for name, object_id in names]  # 使用列表推导式
+                
+                if not object_ids:
+                    time.sleep(interval)  # 如果没有对象，休眠 interval 秒
+                    continue
+
+                metas = self.default_client().get_metas(object_ids)
+                blobs_to_delete = []
+
+                # 遍历元数据获取 Blob
+                for index, meta in metas:
+                    blobs = _traverse_blobs(meta)
+                    for blob in blobs:
+                        if not self.default_client().is_spilled(blob.id):
+                            break
+                        blobs_to_delete.append(names[index])
+                
+                # 执行删除
+                for name in blobs_to_delete:
+                    self.default_client().delete(name=name)
+
+                time.sleep(interval)  # 每次循环结束后休眠
+
+        # 启动 GC 线程
+        gc_thread = threading.Thread(target=gc_loop, daemon=True)
+        gc_thread.start()
+
     def has_ipc_client(self):
         return self._ipc_client is not None
 
@@ -384,12 +424,18 @@ class Client:
     @_apply_docstring(IPCClient.delete)
     def delete(
         self,
-        object: Union[ObjectID, Object, ObjectMeta, List[ObjectID]],
+        object_id: Union[ObjectID, Object, ObjectMeta, List[ObjectID]] = None,
+        name: str = None,
         force: bool = False,
         deep: bool = True,
         memory_trim: bool = False,
     ) -> None:
-        return self.default_client().delete(object, force, deep, memory_trim)
+        if object_id is None and name is None:
+            raise ValueError("Either object_id or name should be provided.")
+        if name is not None:
+            object_id = self.default_client().get_name(name)
+            self.default_client().drop_name(name)
+        return self.default_client().delete(object_id, force, deep, memory_trim)
 
     @_apply_docstring(IPCClient.create_stream)
     def create_stream(self, id: ObjectID) -> None:
@@ -452,6 +498,10 @@ class Client:
     @_apply_docstring(IPCClient.get_name)
     def get_name(self, name: str, wait: bool = False) -> ObjectID:
         return self.default_client().get_name(name, wait)
+
+    @_apply_docstring(IPCClient.name_exists)
+    def name_exists(self, name: str) -> bool:
+        return self.default_client().name_exists(name)
 
     @_apply_docstring(IPCClient.drop_name)
     def drop_name(self, name: str) -> None:

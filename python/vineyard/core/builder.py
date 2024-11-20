@@ -195,6 +195,9 @@ def put(
     Returns:
         ObjectID: The result object id will be returned.
     """
+    if name is not None and client.name_exists(name):
+        raise ValueError(f"Name {name} already exists in the vineyard")
+
     if builder is not None and not as_async:
         return builder(client, value, **kwargs)
 
