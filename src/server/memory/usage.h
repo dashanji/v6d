@@ -475,7 +475,7 @@ class ColdObjectTracker
    * @brief check if a blob is spilled out. Return true if it is spilled.
    */
   Status IsSpilled(const ID id, bool& is_spilled) {
-    if (cold_obj_lru_.CheckSpilled(id)) {
+    if (cold_obj_lru_.CheckIsSpilled(id)) {
       is_spilled = true;
     } else {
       is_spilled = false;

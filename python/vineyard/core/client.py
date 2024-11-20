@@ -646,6 +646,10 @@ class Client:
         if self.has_ipc_client():
             self._ipc_client.release_objects(object_ids)
 
+    def is_spilled(self, object_id: ObjectID) -> bool:
+        if self.has_ipc_client():
+            return self._ipc_client.is_spilled(object_id)
+
     @_apply_docstring(IPCClient.list_objects)
     def list_objects(
         self, pattern: str, regex: bool = False, limit: int = 5

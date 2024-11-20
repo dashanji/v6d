@@ -430,6 +430,7 @@ void bind_client(py::module& mod) {
           "put_name",
           [](ClientBase* self, const ObjectIDWrapper object_id,
              std::string const& name) {
+            py::gil_scoped_release release;
             throw_on_error(self->PutName(object_id, name));
           },
           "object_id"_a, "name"_a, doc::ClientBase_put_name)
@@ -437,6 +438,7 @@ void bind_client(py::module& mod) {
           "put_name",
           [](ClientBase* self, const ObjectIDWrapper object_id,
              ObjectNameWrapper const& name) {
+            py::gil_scoped_release release;
             throw_on_error(self->PutName(object_id, name));
           },
           "object_id"_a, "name"_a)
@@ -444,6 +446,7 @@ void bind_client(py::module& mod) {
           "put_name",
           [](ClientBase* self, const ObjectMeta& meta,
              std::string const& name) {
+            py::gil_scoped_release release;
             throw_on_error(self->PutName(meta.GetId(), name));
           },
           "object_meta"_a, "name"_a)
@@ -451,6 +454,7 @@ void bind_client(py::module& mod) {
           "put_name",
           [](ClientBase* self, const ObjectMeta& meta,
              ObjectNameWrapper const& name) {
+            py::gil_scoped_release release;
             throw_on_error(self->PutName(meta.GetId(), name));
           },
           "object_meta"_a, "name"_a)
@@ -464,6 +468,7 @@ void bind_client(py::module& mod) {
           "put_name",
           [](ClientBase* self, const Object* object,
              ObjectNameWrapper const& name) {
+            py::gil_scoped_release release;
             throw_on_error(self->PutName(object->id(), name));
           },
           "object"_a, "name"_a)
@@ -842,6 +847,13 @@ void bind_client(py::module& mod) {
             return self->Release(object_ids);
           },
           "object_ids"_a, doc::IPCClient_release_objects)
+      .def("is_spilled", 
+          [](Client* self, ObjectIDWrapper const& object_id) -> bool {
+            bool spilled = false;
+            throw_on_error(self->IsSpilled(object_id, spilled));
+            return spilled;
+          },
+          "object_id"_a)
       .def("__enter__", [](Client* self) { return self; })
       .def("__exit__", [](Client* self, py::object, py::object, py::object) {
         // DO NOTHING
